@@ -2,5 +2,10 @@
 
 public class Register
 {
-    byte[] registerValue = new byte[4];
+    byte[] registerValue;
+    
+    public Register(int size)
+    {
+        registerValue = new byte[size];
+    }
 }

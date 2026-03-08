@@ -12,5 +12,23 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <Grid Name="MainGrid"
+          ColumnDefinitions="3*, 1*"
+          Background="HotPink">
+        <Grid Name="TextAndCommandline"
+              RowDefinitions="3*, 1*"
+              Background="Aqua"
+              Grid.Column="0">
+            
+            <TextBox VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="0"></TextBox>
+            <TextBlock Text="Hi this is a test" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1"></TextBlock>
+        </Grid>
+        
+        <Grid Name="Memory"
+              RowDefinitions="3*, 1*"
+              Background="Red"
+              Grid.Column="1">
+        
+        </Grid>
+    </Grid>
 </UserControl>
