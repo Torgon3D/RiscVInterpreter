@@ -6,8 +6,8 @@ public class Memory
 {
     byte[] internalMemory;
     
-    void test()
+    public Memory(int memorySize)
     {
-        
+        internalMemory = new byte[memorySize];
     }
 }
