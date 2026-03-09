@@ -13,21 +13,30 @@
   </Design.DataContext>
 
     <Grid Name="MainGrid"
-          ColumnDefinitions="3*, 1*"
+          RowDefinitions="1*, 5*, 3*"
           Background="HotPink">
-        <Grid Name="TextAndCommandline"
+        
+        <Grid Name="Topbar"
+              RowDefinitions="3*, 1*"
+              Background="Red"
+              Grid.Row="0">
+        
+            
+        </Grid>
+        
+        <Grid Name="TextAndMemory"
               RowDefinitions="3*, 1*"
               Background="Aqua"
-              Grid.Column="0">
+              Grid.Row="1">
             
             <TextBox VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="0"></TextBox>
             <TextBlock Text="Hi this is a test" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="1"></TextBlock>
         </Grid>
         
-        <Grid Name="Memory"
+        <Grid Name="Information"
               RowDefinitions="3*, 1*"
               Background="Red"
-              Grid.Column="1">
+              Grid.Row="0">
         
         </Grid>
     </Grid>
