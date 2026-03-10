@@ -14,7 +14,7 @@
   </Design.DataContext>
 
     <Grid Name="MainGrid"
-          RowDefinitions="auto, 10*"
+          RowDefinitions="auto, *"
           Background="#2b2b2b">
         
         <Grid Name="Topbar"
@@ -32,7 +32,7 @@
         </Grid>
         
         <Grid Name="SideSplit"
-              ColumnDefinitions="*, 400"
+              ColumnDefinitions="*, auto"
               Grid.Row="1">
             
             <Grid Name="HorisontalSplitTextConsole"
@@ -62,28 +62,37 @@
                 </Border>
             </Grid>
             
-            <Border Grid.Column="1" Margin="5, 5" CornerRadius="2" Background="#0d0d0d" BorderBrush="White" BorderThickness="2">
             <Grid Name="HorisontalSplitMemory"
-                  RowDefinitions="*, *"
+                  RowDefinitions="auto, *,auto, *"
+                  Grid.Column="1"
                   >
                 
+            <Border Grid.Row="0" Margin="5, 5" CornerRadius="2" Background="#0d0d0d" BorderBrush="White" BorderThickness="2"><TextBlock Padding="2" Text="Registers"/></Border>
+            <Border Grid.Row="1" Margin="5, 5" CornerRadius="2" Background="#0d0d0d" BorderBrush="White" BorderThickness="2">
                 <ScrollViewer>
+                <StackPanel ClipToBounds="True">
                 <ItemsControl Name="RegistersItems"
                               ItemsSource="{Binding RegisterList}"
-                              VerticalAlignment="Stretch"
+                              VerticalAlignment="Top"
                               >
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
+                        <Border HorizontalAlignment="Stretch" Margin="5, 5" CornerRadius="2" BorderBrush="White" BorderThickness="1">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                            <TextBlock Text="{Binding key}" Width="100"></TextBlock>
-                            <NumericUpDown Value="{Binding value}" Width="200"></NumericUpDown>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                            <TextBlock Text="{Binding name}" Width="60" VerticalAlignment="Center"></TextBlock>
+                            <SelectableTextBlock Text="{Binding visibleValue, Mode=TwoWay, StringFormat={}Hex:{0:X8}  Bin:{0:b32}}" FontFamily="Cascadia Code,Consolas,Menlo,Monospace" VerticalAlignment="Center"></SelectableTextBlock>
+                            </StackPanel>
+                        <NumericUpDown FontFamily="Cascadia Code,Consolas,Menlo,Monospace" Value="{Binding visibleValue}" MinWidth="50" Maximum="2147483647" Minimum="0" ParsingNumberStyle="Integer" ShowButtonSpinner="False"></NumericUpDown>
                         </StackPanel>
+                    </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                </ScrollViewer>
-            </Grid>
+            </StackPanel>
+        </ScrollViewer>
             </Border>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>
