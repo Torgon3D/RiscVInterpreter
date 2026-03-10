@@ -4,7 +4,13 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
+using Avalonia.Threading;
+using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -13,8 +19,7 @@ namespace RiscVInterpreter.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string _greeting = "Welcome to Avalonia!";
-    
+    private TextDocument _editableTextDocument = new("Lol");
     public ObservableCollection<MemoryUI> RegisterList {get;set;}
     public MainViewModel()
     {
@@ -34,7 +39,32 @@ public partial class MainViewModel : ViewModelBase
         RegisterList.Add(new("hello", 30));
         RegisterList.Add(new("hello", 30));
         RegisterList.Add(new("hello", 30));
+        Task.Delay(5000).ContinueWith(t => Dispatcher.UIThread.Invoke(DocTest));
+    }
+    
+    public void PlayPressed(object? sender)
+    {
         
+    }
+    
+    public void PausePressed(object? sender)
+    {
+        
+    }
+    
+    public void StopPressed(object? sender)
+    {
+        Console.WriteLine(EditableTextDocument.Text.Replace("\t", string.Empty));  //.Trim([' ', '\t', '\n']));
+    }
+    
+    async void DocTest()
+    {
+        Debug.Print(EditableTextDocument.Text);
+        string[] lines = EditableTextDocument.Text.Split("\n");
+        foreach (var line in lines)
+        {
+            Debug.Print(line);
+        }
     }
 }
 

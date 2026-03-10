@@ -13,20 +13,37 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
+    <UserControl.Styles>
+        <Style Selector="Border.Big">
+            <Setter Property="Margin" Value="5, 5" />
+            <Setter Property="BorderBrush" Value="White" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Background" Value="#0d0d0d" />
+        </Style>
+        <Style Selector="Border.Small">
+            <Setter Property="Margin" Value="5, 5" />
+            <Setter Property="BorderBrush" Value="White" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+    </UserControl.Styles>
+  
     <Grid Name="MainGrid"
           RowDefinitions="auto, *"
           Background="#2b2b2b">
         
         <Grid Name="Topbar"
-              ColumnDefinitions="*,*,*"
+              ColumnDefinitions="*, *, *"
               Background="WhiteSmoke"
               Grid.Row="0">
         
-            <Border Grid.Column="1" Margin="5, 5" CornerRadius="2" Background="#0d0d0d" BorderBrush="White" BorderThickness="2">
+            <Border Grid.Column="1" Classes="Big" Background="gray">
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                <Button Content="▶️"/>
-                <Button Content="⏸️"/>
-                <Button Content="⏹️"/>
+                <Button Content="▶️" Command="{Binding PlayPressed}"/>
+                <Button Content="⏸️" Command="{Binding PausePressed}"/>
+                <Button Content="⏹️" Command="{Binding StopPressed}"/>
             </StackPanel>
             </Border>
         </Grid>
@@ -36,40 +53,43 @@
               Grid.Row="1">
             
             <Grid Name="HorisontalSplitTextConsole"
-                RowDefinitions="6*, *"
+                RowDefinitions="6*, auto"
                 Grid.Column="0">
                 
                 
-                <Border Grid.Row="0" Margin="5, 5" CornerRadius="2" Background="#0d0d0d" BorderBrush="White" BorderThickness="2">
+                <Border Grid.Row="0" Classes="Big">
                 <avaloniaedit:TextEditor Name="TextEdit"
+                                         Document="{Binding EditableTextDocument, Mode=TwoWay}"
                                          HorizontalAlignment="Stretch"
                                          VerticalAlignment="Stretch"
                                          ShowLineNumbers="True"
                                          Watermark="Start typing to begin"
-                                         FontFamily="Cascadia Code,Consolas,Menlo,Monospace">
+                                         FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                         >
                                          
                 </avaloniaedit:TextEditor>
                 </Border>
                 
-                <Border Grid.Row="1" Margin="5, 5" CornerRadius="2" Background="#0d0d0d" BorderBrush="White" BorderThickness="2">
+                <Border Grid.Row="1" Classes="Big">
                 <Grid Name="Console"
                     RowDefinitions="*, auto"
-                    >
-                    
-                    <SelectableTextBlock Text="Heisann\nManmn" Background="#0d0d0d" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Grid.Row="0"/>
-                    <TextBox  Grid.Row="1" ></TextBox>
+                    Height="150">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" AllowAutoHide="False">
+                    <SelectableTextBlock Text="Heisannaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" Grid.Row="0" TextWrapping="Wrap"/>
+                    </ScrollViewer>
+                    <TextBox Grid.Row="1"></TextBox>
                 </Grid>
                 </Border>
             </Grid>
             
             <Grid Name="HorisontalSplitMemory"
-                  RowDefinitions="auto, *,auto, *"
+                  RowDefinitions="auto, *, auto, *"
                   Grid.Column="1"
                   >
                 
-            <Border Grid.Row="0" Margin="5, 5" CornerRadius="2" Background="#0d0d0d" BorderBrush="White" BorderThickness="2"><TextBlock Padding="2" Text="Registers"/></Border>
-            <Border Grid.Row="1" Margin="5, 5" CornerRadius="2" Background="#0d0d0d" BorderBrush="White" BorderThickness="2">
-                <ScrollViewer>
+            <Border Grid.Row="0" Classes="Big"><TextBlock Padding="2" Text="Registers"/></Border>
+            <Border Grid.Row="1" Classes="Big">
+                <ScrollViewer AllowAutoHide="False">
                 <StackPanel ClipToBounds="True">
                 <ItemsControl Name="RegistersItems"
                               ItemsSource="{Binding RegisterList}"
@@ -77,20 +97,20 @@
                               >
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border HorizontalAlignment="Stretch" Margin="5, 5" CornerRadius="2" BorderBrush="White" BorderThickness="1">
+                        <Border Classes="Small">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                             <TextBlock Text="{Binding name}" Width="60" VerticalAlignment="Center"></TextBlock>
                             <SelectableTextBlock Text="{Binding visibleValue, Mode=TwoWay, StringFormat={}Hex:{0:X8}  Bin:{0:b32}}" FontFamily="Cascadia Code,Consolas,Menlo,Monospace" VerticalAlignment="Center"></SelectableTextBlock>
                             </StackPanel>
-                        <NumericUpDown FontFamily="Cascadia Code,Consolas,Menlo,Monospace" Value="{Binding visibleValue}" MinWidth="50" Maximum="2147483647" Minimum="0" ParsingNumberStyle="Integer" ShowButtonSpinner="False"></NumericUpDown>
+                        <NumericUpDown FontFamily="Cascadia Code,Consolas,Menlo,Monospace" Value="{Binding visibleValue}" MinWidth="50" Maximum="2147483647" Minimum="-2147483647" ParsingNumberStyle="Integer" ShowButtonSpinner="False"></NumericUpDown>
                         </StackPanel>
                     </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </StackPanel>
-        </ScrollViewer>
+                </StackPanel>
+                </ScrollViewer>
             </Border>
             </Grid>
         </Grid>

@@ -39,7 +39,7 @@ public class Register
     
     public void SetFromInt16(short value)
     {
-        registerValue = BitConverter.GetBytes(value);
+        registerValue = SignExtend(BitConverter.GetBytes(value), false);
     }
     
     public ushort GetAsUInt16()
@@ -47,28 +47,55 @@ public class Register
         return BitConverter.ToUInt16(registerValue);
     }
     
-    /* public void SetFromUInt16(ushort value)
+    public void SetFromUInt16(ushort value)
     {
-        registerValue = BitConverter.GetBytes(value);
+        registerValue = SignExtend(BitConverter.GetBytes(value), true);
     }
     
-    public int GetAsInt8()
+    public sbyte GetAsInt8()
     {
-        return BitConverter.To(registerValue);
+        return unchecked((sbyte)registerValue[0]);
     }
     
-    public void SetFromInt8(int value)
+    public void SetFromInt8(byte value)
     {
-        registerValue = BitConverter.GetBytes(value);
+        registerValue = SignExtend([value], false);
     }
     
-    public uint GetAsUInt8()
+    public byte GetAsUInt8()
     {
-        return BitConverter.ToUInt32(registerValue);
+        return registerValue[0];
     }
     
     public void SetFromUInt8(byte value)
     {
-        registerValue[0] = value;
-    } */
+        registerValue = SignExtend([value], true);
+    }
+    
+    private byte[] SignExtend(byte[] bytes, bool isUnsigned)
+    {
+        const byte negative = 0b1111_1111;
+        const byte positive = 0b0000_0000;
+        
+        byte extentions;
+        byte[] extendedBytes = new byte[4];
+        
+        bytes.CopyTo(extendedBytes, 0);
+        
+        if (isUnsigned || ((bytes[bytes.Length-1] & 0b1000_0000) == 0))
+        {
+            extentions = positive;
+        }
+        else
+        {
+            extentions = negative;
+        }
+        
+        for (int i = bytes.Length; i < 4; i++)
+        {
+            extendedBytes[i] = extentions;
+        }
+        
+        return extendedBytes;
+    }
 }
