@@ -27,7 +27,7 @@ public partial class MainViewModel : ViewModelBase
         
         RegisterList.Add(new("hello", 30));
         RegisterList.Add(new("hello1", -101));
-        RegisterList.Add(new("hello2", 30));
+        RegisterList.Add(new("hello2", 300000000));
         RegisterList.Add(new("hello3", 30));
         RegisterList.Add(new("hello4", 30));
         RegisterList.Add(new("hello5", 30));
@@ -54,7 +54,19 @@ public partial class MainViewModel : ViewModelBase
     
     public void StopPressed(object? sender)
     {
-        Console.WriteLine(EditableTextDocument.Text.Replace("\t", string.Empty));  //.Trim([' ', '\t', '\n']));
+        string[] lines = EditableTextDocument.Text.Split('\n');
+        
+        foreach (var line in lines)
+        {
+            string[] lineparams = line.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries);
+            
+            foreach (var parameters in lineparams)
+            {
+                Console.Write($"[{parameters}]");
+            }
+            
+            Console.WriteLine();
+        }
     }
     
     async void DocTest()
@@ -71,7 +83,13 @@ public partial class MainViewModel : ViewModelBase
 public partial class MemoryUI : INotifyPropertyChanged
 {
     public string name { get; set;}
-    public int visibleValue { get; set { field = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("visibleValue")); ValueUpdated();} }
+    public int? visibleValue { get; set {
+            field = (value != null) ? value : 0;
+            
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("visibleValue"));
+            ValueUpdated();
+        }
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

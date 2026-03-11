@@ -44,7 +44,25 @@
                 <Button Content="▶️" Command="{Binding PlayPressed}"/>
                 <Button Content="⏸️" Command="{Binding PausePressed}"/>
                 <Button Content="⏹️" Command="{Binding StopPressed}"/>
+                <TextBlock FontSize="18" Margin="10, 0, 0, 0" VerticalAlignment="Center">Speed:</TextBlock>
+                <ComboBox Name="SpeedDropDown"
+                          SelectedIndex="0"
+                          MaxDropDownHeight="200"
+                          Width="120">
+                <ComboBoxItem>None</ComboBoxItem>
+                <ComboBoxItem>1000Hz</ComboBoxItem>
+                <ComboBoxItem>500Hz</ComboBoxItem>
+                <ComboBoxItem>250Hz</ComboBoxItem>
+                <ComboBoxItem>100Hz</ComboBoxItem>
+                <ComboBoxItem>50Hz</ComboBoxItem>
+                <ComboBoxItem>25Hz</ComboBoxItem>
+                <ComboBoxItem>1Hz</ComboBoxItem>
+                </ComboBox>
             </StackPanel>
+            </Border>
+            
+            <Border Grid.Column="2" Classes="Big" Background="Gray">
+
             </Border>
         </Grid>
         
@@ -87,7 +105,7 @@
                   Grid.Column="1"
                   >
                 
-            <Border Grid.Row="0" Classes="Big"><TextBlock Padding="2" Text="Registers"/></Border>
+            <Border Grid.Row="0" Classes="Big"><TextBlock Margin="4, 4" Text="Registers"/></Border>
             <Border Grid.Row="1" Classes="Big">
                 <ScrollViewer AllowAutoHide="False">
                 <StackPanel ClipToBounds="True">
@@ -101,9 +119,9 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                             <TextBlock Text="{Binding name}" Width="60" VerticalAlignment="Center"></TextBlock>
-                            <SelectableTextBlock Text="{Binding visibleValue, Mode=TwoWay, StringFormat={}Hex:{0:X8}  Bin:{0:b32}}" FontFamily="Cascadia Code,Consolas,Menlo,Monospace" VerticalAlignment="Center"></SelectableTextBlock>
+                            <SelectableTextBlock Text="{Binding visibleValue, Mode=TwoWay, StringFormat={}Hex:{0:X8} Dec:{0} &#xA;Bin:{0:b32}}" FontFamily="Cascadia Code,Consolas,Menlo,Monospace" VerticalAlignment="Center" FontSize="12"></SelectableTextBlock>
                             </StackPanel>
-                        <NumericUpDown FontFamily="Cascadia Code,Consolas,Menlo,Monospace" Value="{Binding visibleValue}" MinWidth="50" Maximum="2147483647" Minimum="-2147483647" ParsingNumberStyle="Integer" ShowButtonSpinner="False"></NumericUpDown>
+                        <NumericUpDown FontFamily="Cascadia Code,Consolas,Menlo,Monospace" Value="{Binding visibleValue}" Width="100" Maximum="2147483647" Minimum="-2147483647" ParsingNumberStyle="Integer" ShowButtonSpinner="False" Margin="4,0,0,0"></NumericUpDown>
                         </StackPanel>
                     </Border>
                     </DataTemplate>
