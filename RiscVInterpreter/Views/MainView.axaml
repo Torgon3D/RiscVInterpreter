@@ -16,14 +16,14 @@
     <UserControl.Styles>
         <Style Selector="Border.Big">
             <Setter Property="Margin" Value="5, 5" />
-            <Setter Property="BorderBrush" Value="White" />
+            <Setter Property="BorderBrush" Value="#242731" />
             <Setter Property="BorderThickness" Value="2" />
             <Setter Property="CornerRadius" Value="2" />
-            <Setter Property="Background" Value="#0d0d0d" />
+            <Setter Property="Background" Value="#1c1c1c" />
         </Style>
         <Style Selector="Border.Small">
             <Setter Property="Margin" Value="5, 5" />
-            <Setter Property="BorderBrush" Value="White" />
+            <Setter Property="BorderBrush" Value="#414141" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="2" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -32,21 +32,25 @@
   
     <Grid Name="MainGrid"
           RowDefinitions="auto, *"
-          Background="#2b2b2b">
+          Background="#393939">
         
         <Grid Name="Topbar"
-              ColumnDefinitions="*, *, *"
-              Background="WhiteSmoke"
+              ColumnDefinitions="*, auto, *"
+              Background="#4a4e58"
               Grid.Row="0">
         
-            <Border Grid.Column="1" Classes="Big" Background="gray">
-            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+            <StackPanel Name="DropDowns" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left">
+                
+            </StackPanel>
+              
+            <Border Grid.Column="1" Classes="Big" Background="#383c43" BorderBrush="#2f3239">
+            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="5, 2">
                 <Button Content="▶️" Command="{Binding PlayPressed}"/>
                 <Button Content="⏸️" Command="{Binding PausePressed}"/>
                 <Button Content="⏹️" Command="{Binding StopPressed}"/>
                 <TextBlock FontSize="18" Margin="10, 0, 0, 0" VerticalAlignment="Center">Speed:</TextBlock>
                 <ComboBox Name="SpeedDropDown"
-                          SelectedIndex="0"
+                          SelectedIndex="{Binding SelectedSpeed}"
                           MaxDropDownHeight="200"
                           Width="120">
                 <ComboBoxItem>None</ComboBoxItem>
@@ -60,10 +64,9 @@
                 </ComboBox>
             </StackPanel>
             </Border>
-            
-            <Border Grid.Column="2" Classes="Big" Background="Gray">
-
-            </Border>
+            <StackPanel Name="Misc" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                
+            </StackPanel>
         </Grid>
         
         <Grid Name="SideSplit"
@@ -93,7 +96,7 @@
                     RowDefinitions="*, auto"
                     Height="150">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" AllowAutoHide="False">
-                    <SelectableTextBlock Text="Heisannaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" Grid.Row="0" TextWrapping="Wrap"/>
+                    <SelectableTextBlock Text="" Grid.Row="0" TextWrapping="Wrap"/>
                     </ScrollViewer>
                     <TextBox Grid.Row="1"></TextBox>
                 </Grid>

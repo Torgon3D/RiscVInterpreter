@@ -2,74 +2,75 @@
 
 using System;
 using System.ComponentModel;
+using System.Reflection.Metadata.Ecma335;
 
 public class Register
 {
-    byte[] registerValue;
+    private byte[] _registerValue;
     
     public Register(int size)
     {
-        registerValue = new byte[size];
+        _registerValue = new byte[size];
     }
     
     public int GetAsInt32()
     {
-        return BitConverter.ToInt32(registerValue);
+        return BitConverter.ToInt32(_registerValue);
     }
     
     public void SetFromInt32(int value)
     {
-        registerValue = BitConverter.GetBytes(value);
+        _registerValue = BitConverter.GetBytes(value);
     }
     
     public uint GetAsUInt32()
     {
-        return BitConverter.ToUInt32(registerValue);
+        return BitConverter.ToUInt32(_registerValue);
     }
     
     public void SetFromUInt32(uint value)
     {
-        registerValue = BitConverter.GetBytes(value);
+        _registerValue = BitConverter.GetBytes(value);
     }
     
     public short GetAsInt16()
     {
-        return BitConverter.ToInt16(registerValue);
+        return BitConverter.ToInt16(_registerValue);
     }
     
     public void SetFromInt16(short value)
     {
-        registerValue = SignExtend(BitConverter.GetBytes(value), false);
+        _registerValue = SignExtend(BitConverter.GetBytes(value), false);
     }
     
     public ushort GetAsUInt16()
     {
-        return BitConverter.ToUInt16(registerValue);
+        return BitConverter.ToUInt16(_registerValue);
     }
     
     public void SetFromUInt16(ushort value)
     {
-        registerValue = SignExtend(BitConverter.GetBytes(value), true);
+        _registerValue = SignExtend(BitConverter.GetBytes(value), true);
     }
     
     public sbyte GetAsInt8()
     {
-        return unchecked((sbyte)registerValue[0]);
+        return unchecked((sbyte)_registerValue[0]);
     }
     
     public void SetFromInt8(byte value)
     {
-        registerValue = SignExtend([value], false);
+        _registerValue = SignExtend([value], false);
     }
     
     public byte GetAsUInt8()
     {
-        return registerValue[0];
+        return _registerValue[0];
     }
     
     public void SetFromUInt8(byte value)
     {
-        registerValue = SignExtend([value], true);
+        _registerValue = SignExtend([value], true);
     }
     
     private byte[] SignExtend(byte[] bytes, bool isUnsigned)
@@ -82,7 +83,7 @@ public class Register
         
         bytes.CopyTo(extendedBytes, 0);
         
-        if (isUnsigned || ((bytes[bytes.Length-1] & 0b1000_0000) == 0))
+        if (isUnsigned || IsBytePositive(bytes[bytes.Length-1]))
         {
             extentions = positive;
         }
@@ -97,5 +98,10 @@ public class Register
         }
         
         return extendedBytes;
+    }
+    
+    private bool IsBytePositive(byte check)
+    {
+        return (check & 0b1000_0000) == 0;
     }
 }

@@ -20,31 +20,35 @@ public partial class MainViewModel : ViewModelBase
 {
     [ObservableProperty]
     private TextDocument _editableTextDocument = new("Lol");
+    
+    [ObservableProperty]
+    private int _selectedSpeed = 3;
+    
     public ObservableCollection<MemoryUI> RegisterList {get;set;}
     public MainViewModel()
     {
         RegisterList = new();
         
-        RegisterList.Add(new("hello", 30));
-        RegisterList.Add(new("hello1", -101));
-        RegisterList.Add(new("hello2", 300000000));
-        RegisterList.Add(new("hello3", 30));
-        RegisterList.Add(new("hello4", 30));
-        RegisterList.Add(new("hello5", 30));
-        RegisterList.Add(new("hello", 30));
-        RegisterList.Add(new("hello", 30));
-        RegisterList.Add(new("hello", 30));
-        RegisterList.Add(new("hello", 30));
-        RegisterList.Add(new("hello", 30));
-        RegisterList.Add(new("hello", 30));
-        RegisterList.Add(new("hello", 30));
-        RegisterList.Add(new("hello", 30));
+        RegisterList.Add(new("x0,  Zero", 30));
+        RegisterList.Add(new("x1,  ra", -101));
+        RegisterList.Add(new("x2,  sp", 300000000));
+        RegisterList.Add(new("x3,  gp", 30));
+        RegisterList.Add(new("x4,  tp", 30));
+        RegisterList.Add(new("x5,  t0", 30));
+        RegisterList.Add(new("x6,  t1", 30));
+        RegisterList.Add(new("x7,  t2", 30));
+        RegisterList.Add(new("x8,  s0", 30));
+        RegisterList.Add(new("x9,  s1", 30));
+        RegisterList.Add(new("x10, a0", 30));
+        RegisterList.Add(new("x11, a1", 30));
+        RegisterList.Add(new("x12, a2", 30));
+        RegisterList.Add(new("x13, a3", 30));
         Task.Delay(5000).ContinueWith(t => Dispatcher.UIThread.Invoke(DocTest));
     }
     
     public void PlayPressed(object? sender)
     {
-        
+        Console.WriteLine($"{SelectedSpeed}");
     }
     
     public void PausePressed(object? sender)

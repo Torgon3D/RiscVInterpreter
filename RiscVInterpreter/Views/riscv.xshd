@@ -1,0 +1,54 @@
+<SyntaxDefinition name="riscv"
+        xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="Comment" foreground="Green" />
+    <Color name="String" foreground="Orange" />
+
+    <!-- This is the main ruleset. -->
+    <RuleSet>
+        <Span color="Comment" begin="#" />
+
+        <Span color="String">
+            <Begin>"</Begin>
+            <End>"</End>
+            <RuleSet>
+                <!-- nested span for escape sequences -->
+                <Span begin="\\" end="." />
+            </RuleSet>
+        </Span>
+
+        <Keywords foreground="PeachPuff">
+            <Word>lw</Word>
+            <Word>sw</Word>
+            <Word>add</Word>
+            <Word>addi</Word>
+            <Word>sub</Word>
+            <Word>j</Word>
+            <Word>ret</Word>
+            <Word>beq</Word>
+            <Word>bneq</Word>
+            <Word>jal</Word>
+            <Word>jalr</Word>
+        </Keywords>
+
+        <!-- Digits -->
+        <Rule foreground="LightBlue">
+            \b0[xX][0-9a-fA-F]+  # hex number
+        |    \b
+            (    \d+(\.[0-9]+)?   #number with optional floating point
+            |    \.[0-9]+         #or just starting with floating point
+            )
+            ([eE][+-]?[0-9]+)? # optional exponent
+        </Rule>
+        
+        <!-- Jump point -->
+        <Rule foreground="Salmon">
+            \b(\w*?:)
+        </Rule>
+        
+        <!-- Registers -->
+        <Rule foreground="LightGreen">
+            (\bx[0-9]\b|\bx[12][0-9]\b|\bx3[01]\b
+             |\bzero\b|\bra\b|\bsp\b|\bgp\b|\btp\b|\bt[0-6]\b|\ba[0-7]\b|\bs[0-9]\b|\bs1[01]\b)
+        </Rule>
+    </RuleSet>
+</SyntaxDefinition>
