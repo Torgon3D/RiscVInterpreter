@@ -1,9 +1,8 @@
-<SyntaxDefinition name="riscv"
+<SyntaxDefinition name="RiscVSyntax"
         xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
     <Color name="Comment" foreground="Green" />
     <Color name="String" foreground="Orange" />
 
-    <!-- This is the main ruleset. -->
     <RuleSet>
         <Span color="Comment" begin="#" />
 
@@ -11,11 +10,11 @@
             <Begin>"</Begin>
             <End>"</End>
             <RuleSet>
-                <!-- nested span for escape sequences -->
                 <Span begin="\\" end="." />
             </RuleSet>
         </Span>
 
+        <!-- Instructions -->
         <Keywords foreground="PeachPuff">
             <Word>lw</Word>
             <Word>sw</Word>

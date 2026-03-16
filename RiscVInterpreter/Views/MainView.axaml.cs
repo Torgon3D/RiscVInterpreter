@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -5,6 +6,7 @@ using System.IO;
 using System.Xml;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Platform;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
 using RiscVInterpreter.ViewModels;
@@ -16,7 +18,8 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
-        StreamReader steam = new("C:/Users/torgo/Documents/Programming/RiscVExamProject/RiscVInterpreter/RiscVInterpreter/Views/riscv.xshd");
+        
+        Stream steam = AssetLoader.Open(new Uri("avares://RiscVInterpreter/Assets/RiscVSyntax.xshd"));
         TextEdit.SyntaxHighlighting = HighlightingLoader.Load(XmlReader.Create(steam), HighlightingManager.Instance);
     }
 }
