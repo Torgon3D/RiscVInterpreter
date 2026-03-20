@@ -1,6 +1,6 @@
 
 
-class Interpreter
+public class Interpreter
 {
     public enum EInstructionFormat
     {
@@ -24,6 +24,25 @@ class Interpreter
     
     private void ProgramLoop()
     {
+        // Get info
+        
+        // Check validity
+        
+        // Execute command
+        
+        // Continue to next line
+    }
+}
+
+public class RiscVArguments
+{
+    public int? rd, rs1, rs2, intImm;
+    public float? floatImm; 
+    
+    public RiscVArguments()
+    {
         
     }
+    
+    
 }
