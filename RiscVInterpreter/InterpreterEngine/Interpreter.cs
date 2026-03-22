@@ -36,8 +36,8 @@ public class Interpreter
 
 public class RiscVArguments
 {
-    public int? rd, rs1, rs2, intImm;
-    public float? floatImm; 
+    public int? rd, rs1, rs2;
+    public byte[]? immidiate;
     
     public RiscVArguments()
     {
