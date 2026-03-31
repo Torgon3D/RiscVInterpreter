@@ -1,8 +1,8 @@
-
-
 using System;
 using System.ComponentModel;
 using System.Reflection.Metadata.Ecma335;
+
+namespace RiscVInterpreterEngine;
 
 public class Register
 {
