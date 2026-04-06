@@ -29,7 +29,8 @@ public class Interpreter
 {
     private Dictionary<string, int> constValues;
     private Dictionary<string, int> jumpPoints;
-    private Dictionary<string, RiscVInstruction> commands;
+    //private Dictionary<string, RiscVInstruction> commands;
+    private List<RunnableLine> commands;
     
     public void Start()
     {
@@ -57,10 +58,29 @@ public class Interpreter
         
     }
     
+    private void ExtractConstants()
+    {
+        
+    }
+    
     private void RunInstruction()
     {
         
     }
+}
+
+public struct RunnableLine
+{
+    public RunnableLine(RiscVInstruction instr, RiscVArguments args, int lineNumber)
+    {
+        this.instr = instr;
+        this.args = args;
+        this.lineNumber = lineNumber;
+    }
+    
+    public RiscVInstruction instr;
+    public RiscVArguments args;
+    public int lineNumber;
 }
 
 public class RiscVInstruction
