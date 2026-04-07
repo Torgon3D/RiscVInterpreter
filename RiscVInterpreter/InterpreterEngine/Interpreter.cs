@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Microsoft.VisualBasic;
 
 namespace RiscVInterpreterEngine;
 
@@ -32,6 +34,8 @@ public class Interpreter
     //private Dictionary<string, RiscVInstruction> commands;
     private List<RunnableLine> commands;
     
+    private string heldLabel;
+    
     public void Start()
     {
         
@@ -53,9 +57,28 @@ public class Interpreter
         // Continue to next line
     }
     
-    private void InterpretLine()
+    private void InterpretLineConstants(string line)
     {
+        if (line.IsWhiteSpace()) return;
         
+        string trimmedLine = line.Trim();
+        
+        Match match = Regex.Match(trimmedLine, "");
+        // if its a label try to find out if its an command
+        if (match.Success)
+        {
+            // its a label
+            
+            
+        }
+        else if (Regex.Match(trimmedLine, "").Success)
+        {
+            // its a command
+        }
+        else if (Regex.Match(trimmedLine, "").Success)
+        {
+            // its an constant
+        }
     }
     
     private void ExtractConstants()
