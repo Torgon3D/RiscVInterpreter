@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 
@@ -14,18 +15,7 @@ public enum EInstructionFormat
     B,
     U,
     J,
-    fR,
-    fI,
-    fS,
-    fB,
-    fU,
-    fJ,
-    pR,
-    pI,
-    pS,
-    pB,
-    pU,
-    pJ,
+    R4
 }
 public class Interpreter
 {
@@ -34,7 +24,7 @@ public class Interpreter
     //private Dictionary<string, RiscVInstruction> commands;
     private List<RunnableLine> commands;
     
-    private string heldLabel;
+    private string? heldLabel;
     
     public void Start()
     {
@@ -110,7 +100,11 @@ public class RiscVInstruction
 {
     private Action<RiscVArguments> _instructionFunction;
     private EInstructionFormat _instructionFormat;
+    private EArgumentFlags _argumentFlags;
     private string _instructionInfo;
+    private byte _opcode;
+    private byte? _funct3;
+    private byte? _funct7;
     
     public RiscVInstruction(Action<RiscVArguments> instructionFunction,
                             EInstructionFormat instructionFormat, string instructionInfo)

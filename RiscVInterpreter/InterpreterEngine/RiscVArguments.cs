@@ -2,15 +2,18 @@ using System;
 
 namespace RiscVInterpreterEngine;
 
-enum EArgumentFlags : byte
+enum EArgumentFlags : short
 {
     RD = 1,
     RS1 = 1 << 1,
     RS2 = 1 << 2,
     IMM = 1 << 3,
-    STORE = 1 << 4,
-    LOAD = 1 << 5,
-    JUMP = 1 << 6
+    FRD = 1 << 4,
+    FRS1 = 1 << 5,
+    FRS2 = 1 << 6,
+    STORE = 1 << 7,
+    LOAD = 1 << 8,
+    LABEL = 1 << 9
 }
 
 public class RiscVArguments
@@ -22,14 +25,14 @@ public class RiscVArguments
         
     }
     
-    public byte GetArgumentInfo(EInstructionFormat format)
+    public short GetArgumentInfo(EInstructionFormat format)
     {
-        byte returnval = 0;
+        short returnval = 0;
         
-        returnval += (byte)(rd != null ? EArgumentFlags.RD : 0);
-        returnval += (byte)(rs1 != null ? EArgumentFlags.RS1 : 0);
-        returnval += (byte)(rs2 != null ? EArgumentFlags.RS2 : 0);
-        returnval += (byte)(imm != null ? EArgumentFlags.IMM : 0);
+        returnval += (short)(rd != null ? EArgumentFlags.RD : 0);
+        returnval += (short)(rs2 != null ? EArgumentFlags.RS2 : 0);
+        returnval += (short)(imm != null ? EArgumentFlags.IMM : 0);
+        returnval += (short)(rs1 != null ? EArgumentFlags.RS1 : 0);
         
         return returnval;
     }
