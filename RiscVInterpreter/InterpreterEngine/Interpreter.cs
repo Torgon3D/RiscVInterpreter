@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 
@@ -26,6 +27,8 @@ public class Interpreter
     
     private string? heldLabel;
     
+    public Action<string> PrintToConsole;
+    
     public void Start()
     {
         
@@ -38,6 +41,7 @@ public class Interpreter
     
     private void ProgramLoop()
     {
+        RunnableLine line;
         // Get info
         
         // Check validity
@@ -45,6 +49,7 @@ public class Interpreter
         // Execute command
         
         // Continue to next line
+        PrintToConsole(BuildInstructionInfo(line));
     }
     
     private void InterpretLineConstants(string line)
@@ -52,20 +57,28 @@ public class Interpreter
         if (line.IsWhiteSpace()) return;
         
         string trimmedLine = line.Trim();
+        // Removes comments
+        trimmedLine = Regex.Match(trimmedLine, @"^[^#]*").Value;
+        if (trimmedLine.IsWhiteSpace()) return;
         
-        Match match = Regex.Match(trimmedLine, "");
+        int stringLoc = 0;
+        
+        Match match = Regex.Match(trimmedLine, @"^[^:][a-zA-Z\d_.]+:");
         // if its a label try to find out if its an command
         if (match.Success)
         {
             // its a label
-            
-            
+            stringLoc = match.Index + match.Length;
         }
-        else if (Regex.Match(trimmedLine, "").Success)
+        
+        Match matchCommand = Regex.Match(trimmedLine.Substring(stringLoc), @"^[a-zA-Z.]+");
+        if (matchCommand.Success)
         {
             // its a command
         }
-        else if (Regex.Match(trimmedLine, "").Success)
+        
+        Match matchConstant = Regex.Match(trimmedLine.Substring(stringLoc), @"^\.[a-zA-Z.]+");
+        if (matchConstant.Success)
         {
             // its an constant
         }
@@ -79,6 +92,55 @@ public class Interpreter
     private void RunInstruction()
     {
         
+    }
+    
+    private string BuildInstructionInfo(RunnableLine instruction)
+    {
+        StringBuilder output = new();
+        
+        int instructionMachineCode = 0;
+        switch (instruction.instr.InstructionFormat)
+        {
+        case EInstructionFormat.R:
+            instructionMachineCode |= instruction.instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rd, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs1, 5, 15);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs2, 5, 20);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct3, 3, 12);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct7, 7, 25);
+            break;
+        
+        case EInstructionFormat.I:
+            
+            break;
+        
+        case EInstructionFormat.S:
+            
+            break;
+        
+        case EInstructionFormat.B:
+            
+            break;
+        
+        case EInstructionFormat.U:
+            
+            break;
+        
+        case EInstructionFormat.J:
+            
+            break;
+        
+        case EInstructionFormat.R4:
+            
+            break;
+        
+        default:
+            
+            break;
+        }
+        output.Append(instructionMachineCode);
+        
+        return output.ToString();
     }
 }
 
@@ -98,26 +160,26 @@ public struct RunnableLine
 
 public class RiscVInstruction
 {
-    private Action<RiscVArguments> _instructionFunction;
-    private EInstructionFormat _instructionFormat;
-    private EArgumentFlags _argumentFlags;
-    private string _instructionInfo;
-    private byte _opcode;
-    private byte? _funct3;
-    private byte? _funct7;
+    private Action<RiscVArguments> InstructionFunction;
+    public EInstructionFormat InstructionFormat;
+    public EArgumentFlags ArgumentFlags;
+    public string InstructionInfo;
+    public byte Opcode;
+    public byte? Funct3;
+    public byte? Funct7;
     
     public RiscVInstruction(Action<RiscVArguments> instructionFunction,
                             EInstructionFormat instructionFormat, string instructionInfo)
     {
-        _instructionFunction = instructionFunction;
-        _instructionFormat = instructionFormat;
-        _instructionInfo = instructionInfo;
+        InstructionFunction = instructionFunction;
+        InstructionFormat = instructionFormat;
+        InstructionInfo = instructionInfo;
     }
     
     public void RunFunction(RiscVArguments args)
     {
         
         
-        _instructionFunction.Invoke(args);
+        InstructionFunction.Invoke(args);
     }
 }

@@ -2,7 +2,7 @@ using System;
 
 namespace RiscVInterpreterEngine;
 
-enum EArgumentFlags : short
+public enum EArgumentFlags : short
 {
     RD = 1,
     RS1 = 1 << 1,

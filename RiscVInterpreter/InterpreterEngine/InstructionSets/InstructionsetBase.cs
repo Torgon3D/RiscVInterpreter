@@ -5,12 +5,19 @@ namespace RiscVInterpreterEngine;
 public abstract class InstructionsetBase
 {
     public Dictionary<string, RiscVInstruction> Instructions = new();
+    protected MemoryController _memory;
+    
+    public InstructionsetBase(MemoryController memory)
+    {
+        _memory = memory;
+    }
 }
 // Do this for every implementation in their own file
 
 public partial class InstructionsetImplementations : InstructionsetBase
 {
-    InstructionsetImplementations()
+    public InstructionsetImplementations(MemoryController memory) : base(memory)
     {
+        
     }
 }

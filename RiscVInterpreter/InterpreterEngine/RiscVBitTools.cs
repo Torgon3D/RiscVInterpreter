@@ -4,7 +4,7 @@ namespace RiscVInterpreterEngine;
 
 public static class RiscVBitTools
 {
-    static bool IsBitsWithinBounds(int inputBits, int bounds)
+    public static bool IsBitsWithinBounds(int inputBits, int bounds)
     {
         if (32 - int.LeadingZeroCount(Math.Abs(inputBits)) < bounds)
         {
@@ -16,7 +16,7 @@ public static class RiscVBitTools
         }
     }
     
-    static int GetBitsAndSignWithinBounds(int inputBits, int bounds, int offset = 0)
+    public static int GetBitsAndSignWithinBounds(int inputBits, int bounds, int offset = 0)
     {
         const int allBits = ~0;
         
