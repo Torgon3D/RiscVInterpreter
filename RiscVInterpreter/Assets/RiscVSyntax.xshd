@@ -44,10 +44,15 @@
             \b(\w*?:)
         </Rule>
         
-        <!-- Registers -->
+        <!-- Int Registers -->
         <Rule foreground="LightGreen">
             (\bx[0-9]\b|\bx[12][0-9]\b|\bx3[01]\b
              |\bzero\b|\bra\b|\bsp\b|\bgp\b|\btp\b|\bt[0-6]\b|\ba[0-7]\b|\bs[0-9]\b|\bs1[01]\b)
+        </Rule>
+        <!-- Float Registers -->
+        <Rule foreground="LightGreen">
+            (\bf[0-9]\b|\bf[12][0-9]\b|\bf3[01]\b
+             |\bft[0-9]\b|\bft1[01]\b|\bfa[0-7]\b|\bfs[0-9]\b|\bfs1[01]\b)
         </Rule>
     </RuleSet>
 </SyntaxDefinition>
