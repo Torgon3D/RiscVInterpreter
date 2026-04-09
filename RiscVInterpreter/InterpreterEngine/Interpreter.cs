@@ -111,26 +111,57 @@ public class Interpreter
             break;
         
         case EInstructionFormat.I:
+            instructionMachineCode |= instruction.instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs1, 5, 15);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct3, 3, 12);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm, 12, 20);
             
             break;
         
         case EInstructionFormat.S:
+            instructionMachineCode |= instruction.instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs1, 5, 15);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs2, 5, 20);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct3, 3, 12);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm >> 5, 7, 25);
             
             break;
         
         case EInstructionFormat.B:
+        // TODO better error handling
+            if (instruction.args.rd == null || instruction.args.rs1 == null || instruction.args.rs2 == null || instruction.args.imm == null || instruction.instr.Funct3 == null || instruction.instr.Funct7 == null) return null;
+        
+            instructionMachineCode |= instruction.instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs1, 5, 15);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs2, 5, 20);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct3, 3, 12);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm >> 5, 7, 25);
             
             break;
         
         case EInstructionFormat.U:
+            instructionMachineCode |= instruction.instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rd, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm, 12, 20);
             
             break;
         
         case EInstructionFormat.J:
+            instructionMachineCode |= instruction.instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rd, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm, 12, 20);
             
             break;
         
         case EInstructionFormat.R4:
+            instructionMachineCode |= instruction.instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rd, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs1, 5, 15);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs2, 5, 20);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct3, 3, 12);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct7, 7, 25);
             
             break;
         
