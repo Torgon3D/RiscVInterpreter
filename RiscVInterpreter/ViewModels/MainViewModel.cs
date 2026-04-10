@@ -27,6 +27,7 @@ public partial class MainViewModel : ViewModelBase
     public ObservableCollection<MemoryUI> RegisterList {get;set;}
     public MainViewModel()
     {
+        RegisterList = new();
         FillRegisterList();
         
         Task.Delay(5000).ContinueWith(t => Dispatcher.UIThread.Invoke(DocTest));
@@ -203,6 +204,7 @@ public partial class MemoryUI : INotifyPropertyChanged
     
     public MemoryUI(string key, int value)
     {
+        id = key;
         this.name = key;
         this.visibleValue = value;
     }
