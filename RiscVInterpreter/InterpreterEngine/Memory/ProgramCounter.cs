@@ -41,6 +41,11 @@ public class ProgramCounter
         return _PC;
     }
     
+    public int GetAsInt32()
+    {
+        return (int)_PC;
+    }
+    
     public byte[] GetAsBytes()
     {
         return BitConverter.GetBytes(_PC);

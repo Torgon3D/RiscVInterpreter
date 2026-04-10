@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Microsoft.VisualBasic;
 
 namespace RiscVInterpreterEngine;
@@ -20,73 +21,123 @@ public enum EInstructionFormat
 }
 public class Interpreter
 {
-    private Dictionary<string, int> constValues;
-    private Dictionary<string, int> jumpPoints;
-    //private Dictionary<string, RiscVInstruction> commands;
-    private List<RunnableLine> commands;
+    private MemoryController _memController = new();
     
-    private string? heldLabel;
+    private Dictionary<string, int> _constValues = new();
+    private Dictionary<string, int> _jumpPoints = new();
+    private List<RunnableLine> _commands = new();
+    public int Hertz = 0;
+    public bool StopPressed = false;
+    public bool PausePressed = false;
     
     public Action<string> PrintToConsole;
     
-    public void Start()
+    public Interpreter(Action<string> printToConsoleFunction)
     {
+        PrintToConsole = printToConsoleFunction;
+    }
+    
+    public void Start(string[] lines)
+    {
+        _memController.ResetMemory();
         
+        InterpretLineConstants(lines);
     }
     
     public void End()
     {
-        
+        _constValues.Clear();
+        _commands.Clear();
+        _jumpPoints.Clear();
     }
     
     private void ProgramLoop()
     {
-        RunnableLine line;
         // Get info
+        RunnableLine currentLine = _commands[_memController.PC.GetAsInt32()];
         
         // Check validity
         
         // Execute command
         
         // Continue to next line
-        PrintToConsole(BuildInstructionInfo(line));
-    }
-    
-    private void InterpretLineConstants(string line)
-    {
-        if (line.IsWhiteSpace()) return;
+        PrintToConsole(BuildInstructionInfo(currentLine));
         
-        string trimmedLine = line.Trim();
-        // Removes comments
-        trimmedLine = Regex.Match(trimmedLine, @"^[^#]*").Value;
-        if (trimmedLine.IsWhiteSpace()) return;
-        
-        int stringLoc = 0;
-        
-        Match match = Regex.Match(trimmedLine, @"^[^:][a-zA-Z\d_.]+:");
-        // if its a label try to find out if its an command
-        if (match.Success)
+        if (PausePressed)
         {
-            // its a label
-            stringLoc = match.Index + match.Length;
+            
         }
         
-        Match matchCommand = Regex.Match(trimmedLine.Substring(stringLoc), @"^[a-zA-Z.]+");
-        if (matchCommand.Success)
+        if (Hertz > 0)
         {
-            // its a command
-        }
-        
-        Match matchConstant = Regex.Match(trimmedLine.Substring(stringLoc), @"^\.[a-zA-Z.]+");
-        if (matchConstant.Success)
-        {
-            // its an constant
+            Thread.Sleep(TimeSpan.FromSeconds(1.0/(double)Hertz));
         }
     }
     
-    private void ExtractConstants()
+    private void Pause()
     {
         
+    }
+    
+    private void Resume()
+    {
+        
+    }
+    
+    private void InterpretLineConstants(string[] lines)
+    {
+        int instructionCounter = 0;
+        List<string> labels = new();
+        
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (lines[i].IsWhiteSpace()) return;
+            
+            string trimmedLine = lines[i].Trim();
+            // Removes comments
+            trimmedLine = Regex.Match(trimmedLine, @"^[^#]*").Value;
+            if (trimmedLine.IsWhiteSpace()) return;
+            
+            int stringLoc = 0;
+            
+            Match match = Regex.Match(trimmedLine, @"^[^:][a-zA-Z\d_.]+:");
+            // if its a label try to find out if its an command
+            if (match.Success)
+            {
+                // its a label
+                labels.Add(match.Value.Replace(":", ""));
+                stringLoc = match.Index + match.Length;
+            }
+            
+            Match matchConstant = Regex.Match(trimmedLine.Substring(stringLoc).Trim(), @"^\.[a-zA-Z.]+\b");
+            Match matchCommand = Regex.Match(trimmedLine.Substring(stringLoc).Trim(), @"^[^.][a-zA-Z.]+");
+            if (matchConstant.Success)
+            {
+                // its an constant
+                int constValue;
+                
+                if (int.TryParse(trimmedLine.Substring(matchConstant.Index + matchConstant.Length).Trim(), out constValue));
+                
+                if (labels.Count > 0)
+                {
+                    foreach (string label in labels) _constValues.Add(label, constValue);
+                    labels.Clear();
+                }
+            }
+            else if (matchCommand.Success)
+            {
+                // its a command
+                
+                
+                
+                if (labels.Count > 0)
+                {
+                    foreach (string label in labels) _jumpPoints.Add(label, instructionCounter);
+                    labels.Clear();
+                }
+                instructionCounter += 1;
+            }
+        }
     }
     
     private void RunInstruction()
@@ -99,69 +150,69 @@ public class Interpreter
         StringBuilder output = new();
         
         int instructionMachineCode = 0;
-        switch (instruction.instr.InstructionFormat)
+        switch (instruction.Instr.InstructionFormat)
         {
         case EInstructionFormat.R:
-            instructionMachineCode |= instruction.instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rd, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs1, 5, 15);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs2, 5, 20);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct3, 3, 12);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct7, 7, 25);
+            instructionMachineCode |= instruction.Instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 5, 15);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 5, 20);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 3, 12);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct7, 7, 25);
             break;
         
         case EInstructionFormat.I:
-            instructionMachineCode |= instruction.instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs1, 5, 15);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct3, 3, 12);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm, 12, 20);
+            instructionMachineCode |= instruction.Instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 5, 15);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 3, 12);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 12, 20);
             
             break;
         
         case EInstructionFormat.S:
-            instructionMachineCode |= instruction.instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs1, 5, 15);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs2, 5, 20);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct3, 3, 12);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm >> 5, 7, 25);
+            instructionMachineCode |= instruction.Instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 5, 15);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 5, 20);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 3, 12);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm >> 5, 7, 25);
             
             break;
         
         case EInstructionFormat.B:
         // TODO better error handling
-            if (instruction.args.rd == null || instruction.args.rs1 == null || instruction.args.rs2 == null || instruction.args.imm == null || instruction.instr.Funct3 == null || instruction.instr.Funct7 == null) return null;
+            if (instruction.Args.rd == null || instruction.Args.rs1 == null || instruction.Args.rs2 == null || instruction.Args.imm == null || instruction.Instr.Funct3 == null || instruction.Instr.Funct7 == null) return null;
         
-            instructionMachineCode |= instruction.instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs1, 5, 15);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs2, 5, 20);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct3, 3, 12);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm >> 5, 7, 25);
+            instructionMachineCode |= instruction.Instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 5, 15);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 5, 20);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 3, 12);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm >> 5, 7, 25);
             
             break;
         
         case EInstructionFormat.U:
-            instructionMachineCode |= instruction.instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rd, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm, 12, 20);
+            instructionMachineCode |= instruction.Instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 12, 20);
             
             break;
         
         case EInstructionFormat.J:
-            instructionMachineCode |= instruction.instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rd, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.imm, 12, 20);
+            instructionMachineCode |= instruction.Instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 12, 20);
             
             break;
         
         case EInstructionFormat.R4:
-            instructionMachineCode |= instruction.instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rd, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs1, 5, 15);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.args.rs2, 5, 20);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct3, 3, 12);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.instr.Funct7, 7, 25);
+            instructionMachineCode |= instruction.Instr.Opcode;
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 5, 7);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 5, 15);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 5, 20);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 3, 12);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct7, 7, 25);
             
             break;
         
@@ -169,7 +220,7 @@ public class Interpreter
             
             break;
         }
-        output.Append(instructionMachineCode);
+        output.Append($"[{instruction.LineNumber}] {instructionMachineCode}. {instruction.InstructionInfo}");
         
         return output.ToString();
     }
@@ -177,16 +228,38 @@ public class Interpreter
 
 public struct RunnableLine
 {
-    public RunnableLine(RiscVInstruction instr, RiscVArguments args, int lineNumber)
+    public RunnableLine(RiscVInstruction instr, RiscVArguments args, int lineNumber, int instructionNumber)
     {
-        this.instr = instr;
-        this.args = args;
-        this.lineNumber = lineNumber;
+        Instr = instr;
+        Args = args;
+        LineNumber = lineNumber;
+        InstructionNumber = instructionNumber;
+        
+        InstructionInfo = instr.InstructionInfo;
+        
+        if (args.rd != null)
+        {
+            InstructionInfo += $", rd={args.rd}";
+        }
+        if (args.rs1 != null)
+        {
+            InstructionInfo += $", rs1={args.rs1}";
+        }
+        if (args.rs2 != null)
+        {
+            InstructionInfo += $", rs2={args.rs2}";
+        }
+        if (args.imm != null)
+        {
+            InstructionInfo += $", imm={args.imm}";
+        }
     }
     
-    public RiscVInstruction instr;
-    public RiscVArguments args;
-    public int lineNumber;
+    public RiscVInstruction Instr;
+    public RiscVArguments Args;
+    public int LineNumber;
+    public int InstructionNumber;
+    public string InstructionInfo;
 }
 
 public class RiscVInstruction
