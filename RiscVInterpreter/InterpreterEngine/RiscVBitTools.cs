@@ -19,7 +19,7 @@ public static class RiscVBitTools
     
     public static int GetBitsAndSignWithinBounds(int inputBits, int start, int length, int offset, bool includeSign = true)
     {
-        int allBits = 0b1111111111111111111111111111111;
+        const int allBits = 0b1111111111111111111111111111111;
         int output = inputBits >> start;
         output &= allBits >> (31 - length);
         if (inputBits < 0 && includeSign)

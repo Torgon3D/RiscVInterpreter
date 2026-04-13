@@ -11,9 +11,11 @@ public enum EArgumentFlags : short
     FRD = 1 << 4,
     FRS1 = 1 << 5,
     FRS2 = 1 << 6,
-    STORE = 1 << 7,
-    LOAD = 1 << 8,
-    LABEL = 1 << 9
+    FRS3 = 1 << 7,
+    STORE = 1 << 8,
+    LOAD = 1 << 9,
+    LABEL = 1 << 10,
+    ROUNDING = 1 << 11
 }
 
 public class RiscVArguments
