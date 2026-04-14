@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -21,6 +22,7 @@ public enum EInstructionFormat
 public class Interpreter
 {
     private MemoryController _memController = new();
+    private InstructionsetImplementations _instructions;
     private Dictionary<string, int> _constTypes = new()
     {
         { ".word", 32 },
@@ -39,13 +41,14 @@ public class Interpreter
     public Interpreter(Action<string> printToConsoleFunction)
     {
         PrintToConsole = printToConsoleFunction;
+        _instructions = new(_memController);
     }
     
     public void Start(string[] lines)
     {
         _memController.ResetMemory();
         
-        InterpretLineConstants(lines);
+        ParseLineConstants(lines);
     }
     
     public void End()
@@ -88,7 +91,7 @@ public class Interpreter
         
     }
     
-    private void InterpretLineConstants(string[] lines)
+    private void ParseLineConstants(string[] lines)
     {
         int instructionCounter = 0;
         List<string> labels = new();
@@ -143,6 +146,63 @@ public class Interpreter
                     labels.Clear();
                 }
                 instructionCounter += 1;
+            }
+        }
+        
+        
+    }
+    
+    private void ParseInstructions(string[] lines)
+    {
+        int instructionCounter = 0;
+        
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (lines[i].IsWhiteSpace()) continue;
+            
+            string trimmedLine = lines[i].Trim();
+            // Removes comments
+            trimmedLine = Regex.Match(trimmedLine, @"^[^#]*").Value;
+            if (trimmedLine.IsWhiteSpace()) return;
+            
+            int stringLoc = 0;
+            
+            Match matchLabel = Regex.Match(trimmedLine, @"^[^:][a-zA-Z\d_.]+:");
+            // if its a label try to find out if its an command
+            if (matchLabel.Success)
+            {
+                // its a label
+                stringLoc = matchLabel.Index + matchLabel.Length;
+            }
+            
+            string nextLine = trimmedLine.Substring(stringLoc).Trim();
+            
+            Match matchConstant = Regex.Match(nextLine, @"^\.[a-zA-Z.]+\b");
+            Match matchCommand = Regex.Match(nextLine, @"^[^.][a-zA-Z.]+\b");
+            
+            if (matchConstant.Success)
+            {
+                continue;
+            }
+            else if (matchCommand.Success)
+            {
+                // its a command
+                
+                // Figure out setup
+                RiscVInstruction instr;
+                if (!_instructions.Instructions.TryGetValue(matchCommand.Value.Trim(), out instr))
+                {
+                    throw new NoInstructionFoundException();
+                }
+                RiscVArguments args = new();
+                
+                RunnableLine newLine = new(instr, args, i+1, instructionCounter);
+                // And then fill in arguments
+                
+                
+                
+                _commands.Add(newLine);
+                instructionCounter ++;
             }
         }
     }
@@ -305,17 +365,23 @@ public class RiscVInstruction
     private Action<RiscVArguments> InstructionFunction;
     public EInstructionFormat InstructionFormat;
     public EArgumentFlags ArgumentFlags;
+    public int argumentAmount { get; private set; }
     public string InstructionInfo;
     public byte Opcode;
     public byte? Funct3;
     public byte? Funct7;
     
     public RiscVInstruction(Action<RiscVArguments> instructionFunction,
-                            EInstructionFormat instructionFormat, string instructionInfo)
+                            EInstructionFormat instructionFormat,
+                            EArgumentFlags argumentFlags,
+                            string instructionInfo)
     {
         InstructionFunction = instructionFunction;
         InstructionFormat = instructionFormat;
         InstructionInfo = instructionInfo;
+        ArgumentFlags = argumentFlags;
+        
+        argumentAmount = GetArgumentAmount(argumentFlags);
     }
     
     public void RunFunction(RiscVArguments args)
@@ -323,6 +389,20 @@ public class RiscVInstruction
         
         
         InstructionFunction.Invoke(args);
+    }
+    
+    private int GetArgumentAmount(EArgumentFlags argumentFlags)
+    {
+        argumentFlags &= (EArgumentFlags.RD | EArgumentFlags.RS1 | EArgumentFlags.RS2 | EArgumentFlags.IMM | EArgumentFlags.FRS3);
+        
+        int returnAmount = BitOperations.PopCount((uint)argumentFlags);
+        
+        if ((argumentFlags & (EArgumentFlags.STORE | EArgumentFlags.LOAD)) != 0)
+        {
+            returnAmount -= 1;
+        }
+        
+        return returnAmount;
     }
 }
 
@@ -366,3 +446,20 @@ public class IncorrectBitLengthException : Exception
     public IncorrectBitLengthException() : base(msg){}
 }
 
+
+
+public class NoInstructionFoundException : Exception
+{
+    const string msg = "Bad bit length";
+    
+    public NoInstructionFoundException(string extraInfo) : base(msg + extraInfo){}
+    public NoInstructionFoundException() : base(msg){}
+}
+
+public class InvalidArgsCountException : Exception
+{
+    const string msg = "Bad bit length";
+    
+    public InvalidArgsCountException(string extraInfo) : base(msg + extraInfo){}
+    public InvalidArgsCountException() : base(msg){}
+}

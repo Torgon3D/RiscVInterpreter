@@ -9,7 +9,7 @@ public sealed class Test1
 string tester = 
 @"
 hello: .byte -128
-hello2: .byte 127
+hello2: .byte 127 hei
 
     hi:addi x1, x0, 20
 asdio

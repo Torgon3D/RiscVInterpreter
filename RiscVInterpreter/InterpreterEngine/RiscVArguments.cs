@@ -4,6 +4,7 @@ namespace RiscVInterpreterEngine;
 
 public enum EArgumentFlags : short
 {
+    NONE = 0,
     RD = 1,
     RS1 = 1 << 1,
     RS2 = 1 << 2,
