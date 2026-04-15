@@ -32,7 +32,7 @@ public class Interpreter
     };
     private Dictionary<string, int> _constValues = new();
     private Dictionary<string, int> _jumpPoints = new();
-    private List<RunnableLine> _commands = new();
+    private List<RiscVCommand> _commands = new();
     public int Hertz = 0;
     public bool StopPressed = false;
     public bool PausePressed = false;
@@ -62,7 +62,7 @@ public class Interpreter
     private void ProgramLoop()
     {
         // Get info
-        RunnableLine currentLine = _commands[_memController.PC.GetAsInt32()];
+        RiscVCommand currentLine = _commands[_memController.PC.GetAsInt32()];
         
         // Check validity
         
@@ -131,7 +131,7 @@ public class Interpreter
                 int constValue;
                 if (!_constTypes.TryGetValue(matchConstant.Value, out constBits)) throw new ConstantTypeDoesNotExistException();
 
-                if (!int.TryParse(nextLine.Substring(matchConstant.Index + matchConstant.Length).Trim(), out constValue)) throw new CouldNotParseLineException();
+                if (!int.TryParse(nextLine.Substring(matchConstant.Index + matchConstant.Length).Trim(), out constValue)) throw new CouldNotParseToIntException();
                 
                 if (!RiscVBitTools.IsBitsWithinBounds(constValue, constBits)) throw new IncorrectBitLengthException();
                 
@@ -197,7 +197,7 @@ public class Interpreter
                 }
                 RiscVArguments args = new();
                 
-                RunnableLine newLine = new(instr, args, i+1, instructionCounter);
+                RiscVCommand newLine = new(instr, args, i+1, instructionCounter);
                 // And then fill in arguments
                 
                 string[] argsStrings = nextLine.Substring(matchCommand.Index + matchCommand.Length).Split(",");
@@ -220,11 +220,9 @@ public class Interpreter
                 {
                     if (instr.Arguments[j] == EArgumentTypes.ROUNDING)
                     {
-                        instr.Funct3 = (byte)args.GetRounding(argsStrings[j]);
                         continue;
                     }
                     
-                    args.ParseArgument(argsStrings[j], instr.Arguments[j]);
                 }
                 
                 _commands.Add(newLine);
@@ -238,7 +236,7 @@ public class Interpreter
         
     }
     
-    public string BuildInstructionInfo(RunnableLine instruction)
+    public string BuildInstructionInfo(RiscVCommand instruction)
     {
         StringBuilder output = new();
         
@@ -348,127 +346,4 @@ public class Interpreter
         
         return output.ToString();
     }
-}
-
-public struct RunnableLine
-{
-    public RunnableLine(RiscVInstruction instr, RiscVArguments args, int lineNumber, int instructionNumber)
-    {
-        Instr = instr;
-        Args = args;
-        LineNumber = lineNumber;
-        InstructionNumber = instructionNumber;
-        
-        InstructionInfo = instr.InstructionInfo;
-        
-        if (args.rd != null)
-        {
-            InstructionInfo += $", rd={args.rd}";
-        }
-        if (args.rs1 != null)
-        {
-            InstructionInfo += $", rs1={args.rs1}";
-        }
-        if (args.rs2 != null)
-        {
-            InstructionInfo += $", rs2={args.rs2}";
-        }
-        if (args.imm != null)
-        {
-            InstructionInfo += $", imm={args.imm}";
-        }
-    }
-    
-    public RiscVInstruction Instr;
-    public RiscVArguments Args;
-    public int LineNumber;
-    public int InstructionNumber;
-    public string InstructionInfo;
-}
-
-public class RiscVInstruction
-{
-    private Action<RiscVArguments> InstructionFunction;
-    public EInstructionFormat InstructionFormat;
-    public EArgumentTypes[] Arguments;
-    public string InstructionInfo;
-    public byte Opcode;
-    public byte? Funct3;
-    public byte? Funct7;
-    
-    public RiscVInstruction(Action<RiscVArguments> instructionFunction,
-                            EInstructionFormat instructionFormat,
-                            EArgumentTypes[] arguments,
-                            string instructionInfo)
-    {
-        InstructionFunction = instructionFunction;
-        InstructionFormat = instructionFormat;
-        InstructionInfo = instructionInfo;
-        Arguments = arguments;
-    }
-    
-    public void RunFunction(RiscVArguments args)
-    {
-        
-        
-        InstructionFunction.Invoke(args);
-    }
-}
-
-public class InvalidArgsException : Exception
-{
-    const string msg = "";
-    
-    public InvalidArgsException(string extraInfo) : base(msg + extraInfo){}
-    public InvalidArgsException() : base(msg){}
-}
-
-public class CouldNotParseLineException : Exception
-{
-    const string msg = "";
-    
-    public CouldNotParseLineException(string extraInfo) : base(msg + extraInfo){}
-    public CouldNotParseLineException() : base(msg){}
-}
-
-public class NoLabelForConstantException : Exception
-{
-    const string msg = "";
-    
-    public NoLabelForConstantException(string extraInfo) : base(msg + extraInfo){}
-    public NoLabelForConstantException() : base(msg){}
-}
-
-public class ConstantTypeDoesNotExistException : Exception
-{
-    const string msg = "";
-    
-    public ConstantTypeDoesNotExistException(string extraInfo) : base(msg + extraInfo){}
-    public ConstantTypeDoesNotExistException() : base(msg){}
-}
-
-public class IncorrectBitLengthException : Exception
-{
-    const string msg = "Bad bit length";
-    
-    public IncorrectBitLengthException(string extraInfo) : base(msg + extraInfo){}
-    public IncorrectBitLengthException() : base(msg){}
-}
-
-
-
-public class NoInstructionFoundException : Exception
-{
-    const string msg = "Bad bit length";
-    
-    public NoInstructionFoundException(string extraInfo) : base(msg + extraInfo){}
-    public NoInstructionFoundException() : base(msg){}
-}
-
-public class InvalidArgsCountException : Exception
-{
-    const string msg = "Bad bit length";
-    
-    public InvalidArgsCountException(string extraInfo) : base(msg + extraInfo){}
-    public InvalidArgsCountException() : base(msg){}
 }

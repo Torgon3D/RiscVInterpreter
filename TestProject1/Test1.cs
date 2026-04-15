@@ -28,12 +28,12 @@ fgdsfgsdjkil
             {
                 RiscVArguments args;
                 RiscVInstruction instr;
-                RunnableLine r;
+                RiscVCommand r;
                 switch (i)
                 {
                 case 0:
                     args = new();
-                    instr = new(TestFunc, EInstructionFormat.R, "sub rd, r1, r2");
+                    instr = new(TestFunc, EInstructionFormat.R, [EArgumentTypes.FR1], "sub rd, r1, r2");
                     args.rd = 1;
                     args.rs1 = 10;
                     args.rs2 = 11;
@@ -44,7 +44,7 @@ fgdsfgsdjkil
                     break;
                 case 1:
                     args = new();
-                    instr = new(TestFunc, EInstructionFormat.I, "xori rd, r1, imm");
+                    instr = new(TestFunc, EInstructionFormat.I, Array.Empty<EArgumentTypes>(), "xori rd, r1, imm");
                     args.imm = -237;
                     args.rs1 = 10;
                     args.rd = 1;
@@ -54,7 +54,7 @@ fgdsfgsdjkil
                     break;
                 case 2:
                     args = new();
-                    instr = new(TestFunc, EInstructionFormat.S, "sw rd, r1, r2");
+                    instr = new(TestFunc, EInstructionFormat.S, [EArgumentTypes.FR1], "sw rd, r1, r2");
                     args.imm = -200;
                     args.rs1 = 2;
                     args.rs2 = 1;
@@ -64,7 +64,7 @@ fgdsfgsdjkil
                     break;
                 case 3:
                     args = new();
-                    instr = new(TestFunc, EInstructionFormat.B, "bge rd, r1, r2");
+                    instr = new(TestFunc, EInstructionFormat.B, [EArgumentTypes.FR1], "bge rd, r1, r2");
                     args.imm = -200;
                     args.rs1 = 2;
                     args.rs2 = 1;
@@ -74,7 +74,7 @@ fgdsfgsdjkil
                     break;
                 case 4:
                     args = new();
-                    instr = new(TestFunc, EInstructionFormat.U, "lui rd, imm");
+                    instr = new(TestFunc, EInstructionFormat.U, [EArgumentTypes.FR1], "lui rd, imm");
                     args.imm = 0x10020000;
                     args.rd = 1;
                     instr.Opcode = 0b0110111;
@@ -82,7 +82,7 @@ fgdsfgsdjkil
                     break;
                 case 5:
                     args = new();
-                    instr = new(TestFunc, EInstructionFormat.J, "jal rd, imm");
+                    instr = new(TestFunc, EInstructionFormat.J, [EArgumentTypes.FR1], "jal rd, imm");
                     args.imm = -523610;
                     args.rd = 1;
                     instr.Opcode = 0b1101111;
@@ -90,7 +90,7 @@ fgdsfgsdjkil
                     break;
                 case 6:
                     args = new();
-                    instr = new(TestFunc, EInstructionFormat.R4, "fmadd rd, r1, r2, r3");
+                    instr = new(TestFunc, EInstructionFormat.R4, [EArgumentTypes.FR1], "fmadd rd, r1, r2, r3");
                     args.rd = 0;
                     args.rs1 = 2;
                     args.rs2 = 1;

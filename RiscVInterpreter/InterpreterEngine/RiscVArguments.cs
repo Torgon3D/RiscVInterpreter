@@ -38,16 +38,8 @@ public enum EArgumentTypes : short
 
 public class RiscVArguments
 {
-    public int? rd, rs1, rs2, imm, frs3;
+    public int? rd, rs1, rs2, imm, frs3, rm;
     
-    static Dictionary<string, byte> _roundingModes = new()
-    {
-        { "RNE", 0b000 },
-        { "RTZ", 0b001 },
-        { "RDN", 0b010 },
-        { "RUP", 0b011 },
-        { "RMM", 0b100 },
-    };
     
     public RiscVArguments()
     {
@@ -59,142 +51,50 @@ public class RiscVArguments
         switch (argument)
         {
         case EArgumentTypes.RD:
-            
-            break;
+            return rd != null && IsIntRegister(rd);
             
         case EArgumentTypes.RS1:
-            
-            break;
+            return rs1 != null && IsIntRegister(rs1);
             
         case EArgumentTypes.RS2:
-            
-            break;
+            return rs2 != null && IsIntRegister(rs2);
             
         case EArgumentTypes.IMM:
-            
-            break;
+            return imm != null;
             
         case EArgumentTypes.FRD:
-            
-            break;
+            return rd != null && IsFloatRegister(rd);
             
         case EArgumentTypes.FR1:
-            
-            break;
+            return rs1 != null && IsFloatRegister(rs1);
             
         case EArgumentTypes.FR2:
+            return rs2 != null && IsFloatRegister(rs2);
             
-            break;
+        case EArgumentTypes.FR3:
+            return frs3 != null && IsFloatRegister(frs3);
             
         case EArgumentTypes.MEMORY:
-            
-            break;
+            return rs1 != null && imm != null && IsIntRegister(rs1);
             
         case EArgumentTypes.LABEL:
-            
-            break;
+            return imm != null;
             
         case EArgumentTypes.ROUNDING:
-            
-            break;
+            return rm != null;
             
         default:
             return false;
         }
-        
-        return false;
     }
     
-    public void ParseArgument(string arg, EArgumentTypes argType, int line)
+    private bool IsIntRegister(int? loc)
     {
-        switch (argType)
-        {
-        case EArgumentTypes.RD:
-            rd = ParseRegisterInt(arg, line);
-            break;
-            
-        case EArgumentTypes.RS1:
-            rs1 = ParseRegisterInt(arg, line);
-            break;
-            
-        case EArgumentTypes.RS2:
-            rs2 = ParseRegisterInt(arg, line);
-            break;
-            
-        case EArgumentTypes.IMM:
-            imm = ParseImmidiate(arg, line);
-            break;
-            
-        case EArgumentTypes.FRD:
-            rd = ParseRegisterFloat(arg, line);
-            break;
-            
-        case EArgumentTypes.FR1:
-            rs1 = ParseRegisterFloat(arg, line);
-            break;
-            
-        case EArgumentTypes.FR2:
-            rs2 = ParseRegisterFloat(arg, line);
-            break;
-            
-        case EArgumentTypes.FR3:
-            frs3 = ParseRegisterFloat(arg, line);
-            break;
-            
-        case EArgumentTypes.MEMORY:
-            ParseMemory(arg, line);
-            break;
-            
-        case EArgumentTypes.LABEL:
-            imm = ParseLabel(arg, line);
-            break;
-            
-        case EArgumentTypes.ROUNDING:
-            // Should not happen
-            break;
-            
-        default:
-            return;
-        }
+        return loc >= 0 && loc <= 31;
     }
     
-    private int ParseRegisterInt(string regName, int line)
+    private bool IsFloatRegister(int? loc)
     {
-        
-    }
-    
-    private int ParseRegisterFloat(string regName, int line)
-    {
-        
-    }
-    
-    private int ParseImmidiate(string immidiate, int line)
-    {
-        
-    }
-    
-    private void ParseMemory(string memoryAdress, int line)
-    {
-        
-    }
-    
-    private int ParseLabel(string labelName, int line)
-    {
-        byte roundValue;
-        if (!_roundingModes.TryGetValue(labelName, out roundValue))
-        {
-            throw new ;
-        }
-    }
-    
-    public byte GetRounding(string roundingMode, int line)
-    {
-        byte roundValue;
-        if (!_roundingModes.TryGetValue(roundingMode, out roundValue))
-        {
-            throw new ;
-        }
-        
-        return roundValue;
+        return loc >= 32 && loc <= 63;
     }
 }
