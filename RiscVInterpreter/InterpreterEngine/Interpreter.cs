@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -201,19 +202,30 @@ public class Interpreter
                 
                 string[] argsStrings = nextLine.Substring(matchCommand.Index + matchCommand.Length).Split(",");
                 
-                if (argsStrings.Length + 1 != instr.argumentAmount)
+                if (argsStrings.Length != instr.Arguments.Length)
                 {
-                    throw new InvalidArgsCountException();
+                    if (argsStrings.Length == instr.Arguments.Length -1
+                        && instr.Arguments.Last<EArgumentTypes>() == EArgumentTypes.ROUNDING)
+                    {
+                        instr.Funct3 = 0;
+                    }
+                    else
+                    {
+                        throw new InvalidArgsCountException();
+                    }
                 }
                 
-                // Check and add all the registers
-                
-                if ((instr.ArgumentFlags & (EArgumentFlags.RD)) != 0)
+                // Check and add all the args
+                for (int j = 0; j < argsStrings.Length; j++)
                 {
+                    if (instr.Arguments[j] == EArgumentTypes.ROUNDING)
+                    {
+                        instr.Funct3 = (byte)args.GetRounding(argsStrings[j]);
+                        continue;
+                    }
                     
+                    args.ParseArgument(argsStrings[j], instr.Arguments[j]);
                 }
-                
-                // Check and add the imm
                 
                 _commands.Add(newLine);
                 instructionCounter ++;
@@ -378,8 +390,7 @@ public class RiscVInstruction
 {
     private Action<RiscVArguments> InstructionFunction;
     public EInstructionFormat InstructionFormat;
-    public EArgumentFlags ArgumentFlags;
-    public int argumentAmount { get; private set; }
+    public EArgumentTypes[] Arguments;
     public string InstructionInfo;
     public byte Opcode;
     public byte? Funct3;
@@ -387,15 +398,13 @@ public class RiscVInstruction
     
     public RiscVInstruction(Action<RiscVArguments> instructionFunction,
                             EInstructionFormat instructionFormat,
-                            EArgumentFlags argumentFlags,
+                            EArgumentTypes[] arguments,
                             string instructionInfo)
     {
         InstructionFunction = instructionFunction;
         InstructionFormat = instructionFormat;
         InstructionInfo = instructionInfo;
-        ArgumentFlags = argumentFlags;
-        
-        argumentAmount = GetArgumentAmount(argumentFlags);
+        Arguments = arguments;
     }
     
     public void RunFunction(RiscVArguments args)
@@ -403,20 +412,6 @@ public class RiscVInstruction
         
         
         InstructionFunction.Invoke(args);
-    }
-    
-    private int GetArgumentAmount(EArgumentFlags argumentFlags)
-    {
-        argumentFlags &= (EArgumentFlags.RD | EArgumentFlags.RS1 | EArgumentFlags.RS2 | EArgumentFlags.IMM | EArgumentFlags.FRS3);
-        
-        int returnAmount = BitOperations.PopCount((uint)argumentFlags);
-        
-        if ((argumentFlags & (EArgumentFlags.STORE | EArgumentFlags.LOAD)) != 0)
-        {
-            returnAmount -= 1;
-        }
-        
-        return returnAmount;
     }
 }
 
