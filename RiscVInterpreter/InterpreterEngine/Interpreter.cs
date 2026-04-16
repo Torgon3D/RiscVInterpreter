@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Avalonia.Media;
 
 namespace RiscVInterpreterEngine;
 
@@ -50,6 +52,16 @@ public class Interpreter
         _memController.ResetMemory();
         
         ParseLineConstants(lines);
+        ParseInstructions(lines);
+        
+        
+        Debug.Print(_commands.Count + "Wow");
+        foreach (RiscVCommand c in _commands)
+        {
+            c.Instr.RunFunction(c.Args);
+            PrintToConsole(BuildInstructionInfo(c));
+        }
+        Debug.Print(_memController.IntegerRegisters[1].GetAsInt32() + "");
     }
     
     public void End()
@@ -190,7 +202,7 @@ public class Interpreter
                 // its a command
                 
                 // Figure out setup
-                RiscVInstruction instr;
+                RiscVInstruction? instr;
                 if (!_instructions.Instructions.TryGetValue(matchCommand.Value.Trim(), out instr))
                 {
                     throw new NoInstructionFoundException();
@@ -202,38 +214,17 @@ public class Interpreter
                 
                 string[] argsStrings = nextLine.Substring(matchCommand.Index + matchCommand.Length).Split(",");
                 
-                if (argsStrings.Length != instr.Arguments.Length)
-                {
-                    if (argsStrings.Length == instr.Arguments.Length -1
-                        && instr.Arguments.Last<EArgumentTypes>() == EArgumentTypes.ROUNDING)
-                    {
-                        instr.Funct3 = 0;
-                    }
-                    else
-                    {
-                        throw new InvalidArgsCountException();
-                    }
-                }
+                if (instr.Arguments[instr.Arguments.Length-1] == EArgumentTypes.ROUNDING); // TODO;
                 
-                // Check and add all the args
                 for (int j = 0; j < argsStrings.Length; j++)
                 {
-                    if (instr.Arguments[j] == EArgumentTypes.ROUNDING)
-                    {
-                        continue;
-                    }
-                    
+                    newLine.ParseArgument(argsStrings[j], instr.Arguments[j], _constValues, _jumpPoints);
                 }
                 
                 _commands.Add(newLine);
                 instructionCounter ++;
             }
         }
-    }
-    
-    private void RunInstruction()
-    {
-        
     }
     
     public string BuildInstructionInfo(RiscVCommand instruction)
@@ -253,7 +244,14 @@ public class Interpreter
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 0, 5, 7);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 0, 5, 20);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
+            if (instruction.Args.rm != null)
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
+            }
+            else
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
+            }
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct7, 0, 7, 25);
             break;
         
@@ -265,7 +263,14 @@ public class Interpreter
             instructionMachineCode |= instruction.Instr.Opcode;
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 0, 5, 7);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
+            if (instruction.Args.rm != null)
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
+            }
+            else
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
+            }
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 0, 12, 20);
             
             break;
@@ -278,7 +283,14 @@ public class Interpreter
             instructionMachineCode |= instruction.Instr.Opcode;
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 0, 5, 20);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0,  3, 12);
+            if (instruction.Args.rm != null)
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
+            }
+            else
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
+            }
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 0, 5, 7, false);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 5, 7, 25);
             
@@ -293,7 +305,14 @@ public class Interpreter
             instructionMachineCode |= instruction.Instr.Opcode;
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 0, 5, 20);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
+            if (instruction.Args.rm != null)
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
+            }
+            else
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
+            }
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 11, 1, 7, false);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 1, 4, 8, false);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 5, 6, 25, false);
@@ -326,15 +345,23 @@ public class Interpreter
             if (instruction.Args.rd == null
                 || instruction.Args.rs1 == null
                 || instruction.Args.rs2 == null
+                || instruction.Args.frs3 == null
                 || instruction.Instr.Funct3 == null
                 || instruction.Instr.Funct7 == null) throw new InvalidArgsException();
             instructionMachineCode |= instruction.Instr.Opcode;
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 0, 5, 7);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 0, 5, 20);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
+            if (instruction.Args.rm != null)
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
+            }
+            else
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
+            }
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct7, 0, 2, 25, false);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct7, 2, 5, 27);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.frs3, 0, 5, 27);
             
             break;
         

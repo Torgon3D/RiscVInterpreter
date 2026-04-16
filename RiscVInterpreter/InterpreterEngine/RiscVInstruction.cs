@@ -15,12 +15,18 @@ public class RiscVInstruction
     public RiscVInstruction(Action<RiscVArguments> instructionFunction,
                             EInstructionFormat instructionFormat,
                             EArgumentTypes[] arguments,
-                            string instructionInfo)
+                            string instructionInfo,
+                            byte opcode,
+                            byte? funct3 = null,
+                            byte? funct7 = null)
     {
         InstructionFunction = instructionFunction;
         InstructionFormat = instructionFormat;
         InstructionInfo = instructionInfo;
         Arguments = arguments;
+        Opcode = opcode;
+        Funct3 = funct3;
+        Funct7 = funct7;
     }
     
     public void RunFunction(RiscVArguments args)

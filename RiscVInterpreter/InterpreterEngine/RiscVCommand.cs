@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace RiscVInterpreterEngine;
@@ -50,18 +51,19 @@ public struct RiscVCommand
     
     public void ParseArgument(string arg, EArgumentTypes argType, Dictionary<string, int> consts, Dictionary<string, int> labels)
     {
+        arg = arg.Trim();
         switch (argType)
         {
         case EArgumentTypes.RD:
-            ParseRegisterInt(arg);
+            Args.rd = ParseRegisterInt(arg);
             break;
             
         case EArgumentTypes.RS1:
-            ParseRegisterInt(arg);
+            Args.rs1 = ParseRegisterInt(arg);
             break;
             
         case EArgumentTypes.RS2:
-            ParseRegisterInt(arg);
+            Args.rs2 = ParseRegisterInt(arg);
             break;
             
         case EArgumentTypes.IMM:
@@ -69,19 +71,19 @@ public struct RiscVCommand
             break;
             
         case EArgumentTypes.FRD:
-            ParseRegisterFloat(arg);
+            Args.rd = ParseRegisterFloat(arg);
             break;
             
         case EArgumentTypes.FR1:
-            ParseRegisterFloat(arg);
+            Args.rs1 = ParseRegisterFloat(arg);
             break;
             
         case EArgumentTypes.FR2:
-            ParseRegisterFloat(arg);
+            Args.rs2 = ParseRegisterFloat(arg);
             break;
             
         case EArgumentTypes.FR3:
-            ParseRegisterFloat(arg);
+            Args.frs3 = ParseRegisterFloat(arg);
             break;
             
         case EArgumentTypes.MEMORY:
@@ -93,7 +95,7 @@ public struct RiscVCommand
             break;
             
         case EArgumentTypes.ROUNDING:
-            // Should not happen
+            ParseRounding(arg);
             break;
             
         default:
@@ -164,7 +166,9 @@ public struct RiscVCommand
                 throw new WrongImmidiateFormatException();
             }
             
-            string valueString = immidiate.Substring(3, immidiate.Length - 4).Trim();
+            if (high) {Debug.Print("High");} else {Debug.Print("low");}
+            
+            string valueString = immidiate.Substring(3, immidiate.Length - 3).Trim();
             string labelToFind;
             
             if (valueString[0] == '(' && valueString[valueString.Length-1] == ')')
@@ -181,9 +185,15 @@ public struct RiscVCommand
                 throw new NoLabelForConstantException();
             }
             
+            if (!RiscVBitTools.IsBitsWithinBounds(imm, immSize))
+            {
+                throw new WrongImmidiateSizeException();
+            }
+            else ; // TODO add check for upper immidiate
             
+            Debug.Print("imm became " + imm);
             
-            Args.imm = RiscVBitTools.GetBitsAndSignWithinBounds(imm, 0, immSize, immStart);
+            Args.imm = imm;
         }
         else
         {
@@ -192,7 +202,12 @@ public struct RiscVCommand
                 throw new CouldNotParseToIntException();
             }
             
-            Args.imm = RiscVBitTools.GetBitsAndSignWithinBounds(imm, 0, immSize, immStart);
+            if (!RiscVBitTools.IsBitsWithinBounds(imm, immSize))
+            {
+                throw new WrongImmidiateSizeException();
+            }
+            
+            Args.imm = imm;
         }
     }
     
@@ -233,5 +248,10 @@ public struct RiscVCommand
         }
         
         Args.rm = roundValue;
+    }
+    
+    public void PrintParse()
+    {
+        
     }
 }

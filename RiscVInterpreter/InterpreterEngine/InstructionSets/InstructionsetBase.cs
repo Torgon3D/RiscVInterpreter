@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace RiscVInterpreterEngine;
@@ -18,6 +19,6 @@ public partial class InstructionsetImplementations : InstructionsetBase
 {
     public InstructionsetImplementations(MemoryController memory) : base(memory)
     {
-        
+        Int32Constructor();
     }
 }
