@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace RiscVInterpreterEngine;
@@ -197,9 +198,42 @@ public struct RiscVCommand
         }
         else
         {
-            if (!int.TryParse(immidiate, out imm))
+            NumberStyles format = NumberStyles.Integer;
+            string immSubstring;
+            bool Octal = false;
+            if (immidiate[0] == '0')
             {
-                throw new CouldNotParseToIntException();
+                if (immidiate[1] == 'x' || immidiate[1] == 'X')
+                {
+                    format = NumberStyles.HexNumber;
+                    immSubstring = immidiate.Substring(2);
+                }
+                else if (immidiate[1] == 'b' || immidiate[1] == 'B')
+                {
+                    format = NumberStyles.BinaryNumber;
+                    immSubstring = immidiate.Substring(2);
+                }
+                else
+                {
+                    Octal = true;
+                    immSubstring = immidiate;
+                }
+            }
+            else
+            {
+                immSubstring = immidiate;
+            }
+            
+            if (Octal)
+            {
+                imm = Convert.ToInt32(immidiate, 8);
+            }
+            else
+            {
+                if (!int.TryParse(immSubstring, format, CultureInfo.CurrentCulture, out imm))
+                {
+                    throw new CouldNotParseToIntException();
+                }
             }
             
             if (!RiscVBitTools.IsBitsWithinBounds(imm, immSize))
