@@ -11,7 +11,7 @@ string tester =
 hello2: .byte 127
 
     hi:
-      addi   x1,x0, -2048            
+      addi   x1, a5, 100            
 ";
     
     [TestMethod]
