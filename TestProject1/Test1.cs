@@ -11,7 +11,11 @@ string tester =
 hello2: .byte 127
 
     hi:
+<<<<<<< HEAD
       addi   x1, a5, 100            
+=======
+      addi   x1,x0, 0100            
+>>>>>>> de587daea8fe575a2a910ce4f1c9003e532ed1d5
 ";
     
     [TestMethod]
