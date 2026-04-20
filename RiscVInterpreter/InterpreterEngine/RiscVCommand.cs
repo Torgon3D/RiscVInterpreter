@@ -200,11 +200,7 @@ public struct RiscVCommand
         {
             NumberStyles format = NumberStyles.Integer;
             string immSubstring;
-<<<<<<< HEAD
             bool isOctal = false;
-=======
-            bool Octal = false;
->>>>>>> de587daea8fe575a2a910ce4f1c9003e532ed1d5
             if (immidiate[0] == '0')
             {
                 if (immidiate[1] == 'x' || immidiate[1] == 'X')
@@ -219,11 +215,7 @@ public struct RiscVCommand
                 }
                 else
                 {
-<<<<<<< HEAD
                     isOctal = true;
-=======
-                    Octal = true;
->>>>>>> de587daea8fe575a2a910ce4f1c9003e532ed1d5
                     immSubstring = immidiate;
                 }
             }
@@ -232,16 +224,10 @@ public struct RiscVCommand
                 immSubstring = immidiate;
             }
             
-<<<<<<< HEAD
             if (isOctal)
             {
                 try { imm = Convert.ToInt32(immidiate, 8); }
                     catch { throw new CouldNotParseToIntException(); }
-=======
-            if (Octal)
-            {
-                imm = Convert.ToInt32(immidiate, 8);
->>>>>>> de587daea8fe575a2a910ce4f1c9003e532ed1d5
             }
             else
             {
