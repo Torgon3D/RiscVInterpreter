@@ -79,10 +79,12 @@ public class Register
     };
     
     private byte[] _registerValue;
+    private bool _canWrite;
     
-    public Register(int size)
+    public Register(int size, bool canWrite = true)
     {
         _registerValue = new byte[size];
+        _canWrite = canWrite;
     }
     
     public int GetAsInt32()
@@ -92,6 +94,8 @@ public class Register
     
     public void SetFromInt32(int value)
     {
+        if (!_canWrite) return;
+        
         _registerValue = BitConverter.GetBytes(value);
     }
     
@@ -102,6 +106,8 @@ public class Register
     
     public void SetFromUInt32(uint value)
     {
+        if (!_canWrite) return;
+        
         _registerValue = BitConverter.GetBytes(value);
     }
     
@@ -112,6 +118,8 @@ public class Register
     
     public void SetFromInt16(short value)
     {
+        if (!_canWrite) return;
+        
         _registerValue = SignExtend(BitConverter.GetBytes(value), false);
     }
     
@@ -132,6 +140,8 @@ public class Register
     
     public void SetFromInt8(byte value)
     {
+        if (!_canWrite) return;
+        
         _registerValue = SignExtend([value], false);
     }
     
@@ -142,6 +152,8 @@ public class Register
     
     public void SetFromUInt8(byte value)
     {
+        if (!_canWrite) return;
+        
         _registerValue = SignExtend([value], true);
     }
     

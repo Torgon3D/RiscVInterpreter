@@ -13,7 +13,9 @@ public class MemoryController
     
     public MemoryController()
     {
-        Array.Fill<Register>(IntegerRegisters, new Register(4));
+        // Create the x0 non writeable register
+        IntegerRegisters[0] = new Register(4, false);
+        Array.Fill<Register>(IntegerRegisters, new Register(4), 1, 31);
         Array.Fill<Register>(FloatRegisters, new Register(4));
         MemoryStuff = new Memory(MemorySize);
     }
