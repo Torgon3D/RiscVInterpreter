@@ -4,32 +4,15 @@ using System.Reflection.Emit;
 
 namespace RiscVInterpreterEngine;
 
-/* public enum EArgumentFlags : short
-{
-    NONE = 0,
-    RD = 1,
-    RS1 = 1 << 1,
-    RS2 = 1 << 2,
-    IMM = 1 << 3,
-    FRD = 1 << 4,
-    FRS1 = 1 << 5,
-    FRS2 = 1 << 6,
-    FRS3 = 1 << 7,
-    STORE = 1 << 8,
-    LOAD = 1 << 9,
-    LABEL = 1 << 10,
-    ROUNDING = 1 << 11
-} */
-
 public enum EArgumentTypes : short
 {
     RD = 1,
     RS1,
     RS2,
     IMM,
-    FRD,
-    FR1,
-    FR2,
+    FD,
+    FS1,
+    FS2,
     FR3,
     MEMORY,
     LABEL,
@@ -46,55 +29,178 @@ public class RiscVArguments
         
     }
     
-    public bool HasArgument(EArgumentTypes argument)
+    public void HasArgumentsFilled(EArgumentTypes[] arguments)
     {
-        switch (argument)
+        foreach (var arg in arguments)
         {
-        case EArgumentTypes.RD:
-            return rd != null && IsIntRegister(rd);
+            switch (arg)
+            {
+            case EArgumentTypes.RD:
+                if (rd != null)
+                {
+                    continue;
+                }
+                break;
+                
+            case EArgumentTypes.RS1:
+                if (rs1 != null)
+                {
+                    continue;
+                }
+                break;
+                
+            case EArgumentTypes.RS2:
+                if (rs2 != null)
+                {
+                    continue;
+                }
+                break;
+                
+            case EArgumentTypes.IMM:
+                if (imm != null)
+                {
+                    continue;
+                }
+                break;
+                
+            case EArgumentTypes.FD:
+                if (rd != null)
+                {
+                    continue;
+                }
+                break;
+                
+            case EArgumentTypes.FS1:
+                if (rs1 != null)
+                {
+                    continue;
+                }
+                break;
+                
+            case EArgumentTypes.FS2:
+                if (rs2 != null)
+                {
+                    continue;
+                }
+                break;
+                
+            case EArgumentTypes.FR3:
+                if (frs3 != null)
+                {
+                    continue;
+                }
+                break;
+                
+            case EArgumentTypes.MEMORY:
+                if (rs1 != null && imm != null)
+                {
+                    continue;
+                }
+                break;
+                
+            case EArgumentTypes.LABEL:
+                if (imm != null)
+                {
+                    continue;
+                }
+                break;
+                
+            case EArgumentTypes.ROUNDING:
+                if (rm != null)
+                {
+                    continue;
+                }
+                break;
+                
+            default:
+                break;
+            }
             
-        case EArgumentTypes.RS1:
-            return rs1 != null && IsIntRegister(rs1);
-            
-        case EArgumentTypes.RS2:
-            return rs2 != null && IsIntRegister(rs2);
-            
-        case EArgumentTypes.IMM:
-            return imm != null;
-            
-        case EArgumentTypes.FRD:
-            return rd != null && IsFloatRegister(rd);
-            
-        case EArgumentTypes.FR1:
-            return rs1 != null && IsFloatRegister(rs1);
-            
-        case EArgumentTypes.FR2:
-            return rs2 != null && IsFloatRegister(rs2);
-            
-        case EArgumentTypes.FR3:
-            return frs3 != null && IsFloatRegister(frs3);
-            
-        case EArgumentTypes.MEMORY:
-            return rs1 != null && imm != null && IsIntRegister(rs1);
-            
-        case EArgumentTypes.LABEL:
-            return imm != null;
-            
-        case EArgumentTypes.ROUNDING:
-            return rm != null;
-            
-        default:
+            throw new InvalidArgsException();
+        }
+    }
+    
+    public int GetRD()
+    {
+        if (rd != null)
+        {
+            return (int)rd;
+        }
+        else
+        {
+            throw new InvalidArgsException();
+        }
+    }
+    public int GetRS1()
+    {
+        if (rs1 != null)
+        {
+            return (int)rs1;
+        }
+        else
+        {
+            throw new InvalidArgsException();
+        }
+    }
+    public int GetRS2()
+    {
+        if (rs2 != null)
+        {
+            return (int)rs2;
+        }
+        else
+        {
+            throw new InvalidArgsException();
+        }
+    }
+    public int GetFSR3()
+    {
+        if (frs3 != null)
+        {
+            return (int)frs3;
+        }
+        else
+        {
+            throw new InvalidArgsException();
+        }
+    }
+    public int GetIMM()
+    {
+        if (imm != null)
+        {
+            return (int)imm;
+        }
+        else
+        {
+            throw new InvalidArgsException();
+        }
+    }
+    public bool TryGetRM(out int roundMode)
+    {
+        if (rm != null)
+        {
+            roundMode = (int)rm;
+            return true;
+        }
+        else
+        {
+            roundMode = 0;
             return false;
         }
     }
     
-    private bool IsIntRegister(int? loc)
+    public int GetJumpAmount()
     {
-        return loc >= 0 && loc <= 31;
-    }
-    
-    private bool IsFloatRegister(int? loc)
-    {
-        return loc >= 32 && loc <= 63;
+        if (imm == null)
+        {
+            throw new InvalidArgsException();
+        }
+        
+        if (imm % 4 != 0)
+        {
+            throw new WrongImmidiateFormatException();
+        }
+        
+        return (int)imm / 4;
     }
 }

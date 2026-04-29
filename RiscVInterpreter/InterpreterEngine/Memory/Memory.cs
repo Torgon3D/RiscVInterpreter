@@ -4,11 +4,24 @@ namespace RiscVInterpreterEngine;
 
 public class Memory
 {
+    int _memorySize;
     byte[] _internalMemory;
-    
-    public Memory(int memorySize)
+    Action<byte[]> _memoryUpdated;
+    public Memory(int memorySize, Action<byte[]> memoryUpdated)
     {
-        _internalMemory = new byte[memorySize];
+        _memorySize = memorySize;
+        _internalMemory = new byte[_memorySize];
+        _memoryUpdated = memoryUpdated;
+    }
+    
+    public void ResetMemory()
+    {
+        _internalMemory = new byte[_memorySize];
+    }
+    
+    public byte[] GetAllMemory()
+    {
+        return _internalMemory;
     }
     
     public void SaveToAdress(int adress, byte[] bytes)
@@ -16,6 +29,7 @@ public class Memory
         CheckAdressSpace(adress, bytes.Length);
         
         Array.Copy(bytes, 0, _internalMemory, adress, bytes.Length);
+        _memoryUpdated(_internalMemory);
     }
     
     public byte[] ReadFromAdress(int adress, int length)

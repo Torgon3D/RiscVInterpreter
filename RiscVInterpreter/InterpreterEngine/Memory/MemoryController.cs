@@ -11,19 +11,26 @@ public class MemoryController
     public Memory MemoryStuff { get; private set; }
     public int MemorySize = 256;
     
-    public MemoryController()
+    public MemoryController(Action<string, int> registerUpdated, Action<byte[]> memoryUpdated)
     {
         // Create the x0 non writeable register
-        IntegerRegisters[0] = new Register(4, false);
-        Array.Fill<Register>(IntegerRegisters, new Register(4), 1, 31);
-        Array.Fill<Register>(FloatRegisters, new Register(4));
-        MemoryStuff = new Memory(MemorySize);
+        IntegerRegisters[0] = new Register(4, Register.RegisterNamesKey[0], registerUpdated, false);
+        
+        for (int i = 1; i < 32; i++)
+        {
+            IntegerRegisters[i] = new Register(4, Register.RegisterNamesKey[i], registerUpdated);
+        }
+        for (int i = 32; i < 64; i++)
+        {
+            FloatRegisters[i - 32] = new Register(4, Register.RegisterNamesKey[i], registerUpdated);
+        }
+        MemoryStuff = new Memory(MemorySize, memoryUpdated);
     }
     
     public void ResetMemory()
     {
         PC.SetPCFromUInt32(0);
-        MemoryStuff = new Memory(MemorySize);
+        MemoryStuff.ResetMemory();
         
         foreach (Register r in IntegerRegisters)
         {

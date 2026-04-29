@@ -22,9 +22,17 @@ public enum EInstructionFormat
     J,
     R4
 }
+
+public enum EInterpreterState
+{
+    STOPPED,
+    RUNNING,
+    PAUSED
+}
+
 public class Interpreter
 {
-    private MemoryController _memController = new();
+    private MemoryController _memController;
     private InstructionsetImplementations _instructions;
     private Dictionary<string, int> _constTypes = new()
     {
@@ -38,34 +46,40 @@ public class Interpreter
     public int Hertz = 0;
     public bool StopPressed = false;
     public bool PausePressed = false;
+    public EInterpreterState InterpreterState = EInterpreterState.STOPPED;
     
     public Action<string> PrintToConsole;
     
-    public Interpreter(Action<string> printToConsoleFunction)
+    public Interpreter(Action<string> printToConsoleFunction, Action<string, int> registerUpdated, Action<byte[]> memoryUpdated)
     {
+        _memController = new(registerUpdated, memoryUpdated);
         PrintToConsole = printToConsoleFunction;
         _instructions = new(_memController);
     }
     
     public void Start(string[] lines)
     {
-        _memController.ResetMemory();
-        
-        ParseLineConstants(lines);
-        ParseInstructions(lines);
-        
-        
-        Debug.Print(_commands.Count + "Wow");
-        foreach (RiscVCommand c in _commands)
+        try
         {
-            c.Instr.RunFunction(c.Args);
-            PrintToConsole(BuildInstructionInfo(c));
+            _memController.ResetMemory();
+        
+            ParseLineConstants(lines);
+            ParseInstructions(lines);
+            InterpreterState = EInterpreterState.RUNNING;
+        } catch (Exception e)
+        {
+            PrintToConsole(e.Message);
+            End();
+            return;
         }
-        Debug.Print(_memController.IntegerRegisters[1].GetAsInt32() + "");
+        
+        while (InterpreterState == EInterpreterState.RUNNING)
+            ProgramLoop();
     }
     
     public void End()
     {
+        InterpreterState = EInterpreterState.STOPPED;
         _constValues.Clear();
         _commands.Clear();
         _jumpPoints.Clear();
@@ -73,35 +87,53 @@ public class Interpreter
     
     private void ProgramLoop()
     {
-        // Get info
-        RiscVCommand currentLine = _commands[_memController.PC.GetAsInt32()];
+        int nextPC = _memController.PC.GetForCommandArray();
         
-        // Check validity
+        if (nextPC >= _commands.Count)
+        {
+            PrintToConsole("Run complete");
+            End();
+            return;
+        }
+        
+        // Get info
+        RiscVCommand currentLine = _commands[_memController.PC.GetForCommandArray()];
         
         // Execute command
+        currentLine.Run();
         
-        // Continue to next line
         PrintToConsole(BuildInstructionInfo(currentLine));
+        
+        if (StopPressed)
+        {
+            PausePressed = false;
+            StopPressed = false;
+            PrintToConsole("Ended prematurely");
+            End();
+            return;
+        }
         
         if (PausePressed)
         {
-            
+            InterpreterState = EInterpreterState.PAUSED;
+            PausePressed = false;
+            return;
         }
-        
-        if (Hertz > 0)
+        else if (Hertz > 0)
         {
             Thread.Sleep(TimeSpan.FromSeconds(1.0/(double)Hertz));
         }
     }
     
-    private void Pause()
+    public void Resume()
     {
-        
+        while (InterpreterState == EInterpreterState.RUNNING)
+            ProgramLoop();
     }
     
-    private void Resume()
+    public byte[] RetriveMemory()
     {
-        
+        return _memController.MemoryStuff.GetAllMemory();
     }
     
     private void ParseLineConstants(string[] lines)
@@ -209,14 +241,22 @@ public class Interpreter
                 }
                 RiscVArguments args = new();
                 
-                RiscVCommand newLine = new(instr, args, i+1, instructionCounter);
+                RiscVCommand newLine = new(instr, args, i+1, trimmedLine, instructionCounter);
                 // And then fill in arguments
                 
                 string[] argsStrings = nextLine.Substring(matchCommand.Index + matchCommand.Length).Split(",");
                 
-                if (instr.Arguments[instr.Arguments.Length-1] == EArgumentTypes.ROUNDING); // TODO;
+                int noRounding = 0;
+                if (instr.Arguments[instr.Arguments.Length-1] == EArgumentTypes.ROUNDING)
+                {
+                    if (argsStrings.Length == instr.Arguments.Length-1)
+                    {
+                        noRounding = 1;
+                        args.rm = 0;
+                    }
+                }
                 
-                for (int j = 0; j < argsStrings.Length; j++)
+                for (int j = 0; j < argsStrings.Length - noRounding; j++)
                 {
                     newLine.ParseArgument(argsStrings[j], instr.Arguments[j], _constValues, _jumpPoints);
                 }
@@ -243,7 +283,15 @@ public class Interpreter
             instructionMachineCode |= instruction.Instr.Opcode;
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 0, 5, 7);
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 0, 5, 20);
+            
+            if (instruction.Instr.rs2f != null)
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.rs2f, 0, 5, 20);
+            }
+            else
+            {
+                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 0, 5, 20);
+            }
             if (instruction.Args.rm != null)
             {
                 instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
@@ -369,7 +417,8 @@ public class Interpreter
             
             break;
         }
-        output.Append($"[{instruction.LineNumber}] 0x{instructionMachineCode.ToString("x")} {instruction.InstructionInfo}");
+        
+        output.Append($"[{instruction.LineNumber}] 0x{instructionMachineCode.ToString("x8")} {instruction.CommandInfo} {instruction.Instr.InstructionInfo}");
         
         return output.ToString();
     }

@@ -13,12 +13,17 @@ public class ProgramCounter
     
     public void IncrementPC()
     {
-        _PC += 1;
+        _PC += 4;
     }
     
     public void AddPCFromBytes(byte[] addition)
     {
         _PC += BitConverter.ToUInt32(addition);
+    }
+    
+    public void AddPCFromInt32(int addition)
+    {
+        _PC = (uint)(_PC + addition);
     }
     
     public void AddPCFromUInt32(uint addition)
@@ -49,5 +54,12 @@ public class ProgramCounter
     public byte[] GetAsBytes()
     {
         return BitConverter.GetBytes(_PC);
+    }
+    
+    public int GetForCommandArray()
+    {
+        //if (_PC % 4 != 0) throw new;
+        
+        return (int)_PC / 4;
     }
 }

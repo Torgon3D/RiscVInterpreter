@@ -8,38 +8,21 @@ namespace RiscVInterpreterEngine;
 
 public struct RiscVCommand
 {
-    public RiscVCommand(RiscVInstruction instr, RiscVArguments args, int lineNumber, int instructionNumber)
+    public RiscVCommand(RiscVInstruction instr, RiscVArguments args, int lineNumber, string lineText, int instructionNumber)
     {
         Instr = instr;
         Args = args;
         LineNumber = lineNumber;
         InstructionNumber = instructionNumber;
         
-        InstructionInfo = instr.InstructionInfo;
-        
-        if (args.rd != null)
-        {
-            InstructionInfo += $", rd={args.rd}";
-        }
-        if (args.rs1 != null)
-        {
-            InstructionInfo += $", rs1={args.rs1}";
-        }
-        if (args.rs2 != null)
-        {
-            InstructionInfo += $", rs2={args.rs2}";
-        }
-        if (args.imm != null)
-        {
-            InstructionInfo += $", imm={args.imm}";
-        }
+        CommandInfo = Regex.Replace(lineText.Trim(), @"\s+", " ");
     }
     
     public RiscVInstruction Instr;
     public RiscVArguments Args;
     public int LineNumber;
     public int InstructionNumber;
-    public string InstructionInfo;
+    public string CommandInfo;
     
     static Dictionary<string, byte> _roundingModes = new()
     {
@@ -49,6 +32,11 @@ public struct RiscVCommand
         { "RUP", 0b011 },
         { "RMM", 0b100 },
     };
+    
+    public void Run()
+    {
+        Instr.RunFunction(Args);
+    }
     
     public void ParseArgument(string arg, EArgumentTypes argType, Dictionary<string, int> consts, Dictionary<string, int> labels)
     {
@@ -71,15 +59,15 @@ public struct RiscVCommand
             ParseImmidiate(arg, consts);
             break;
             
-        case EArgumentTypes.FRD:
+        case EArgumentTypes.FD:
             Args.rd = ParseRegisterFloat(arg);
             break;
             
-        case EArgumentTypes.FR1:
+        case EArgumentTypes.FS1:
             Args.rs1 = ParseRegisterFloat(arg);
             break;
             
-        case EArgumentTypes.FR2:
+        case EArgumentTypes.FS2:
             Args.rs2 = ParseRegisterFloat(arg);
             break;
             
@@ -131,19 +119,41 @@ public struct RiscVCommand
         int immSize;
         int immStart;
         int imm;
+        bool mustBePositive = false;
+        bool lsbMustBeZero = false;
             
         if (Instr.InstructionFormat == EInstructionFormat.I
-            || Instr.InstructionFormat == EInstructionFormat.S
-            || Instr.InstructionFormat == EInstructionFormat.B)
+            || Instr.InstructionFormat == EInstructionFormat.S)
         {
-            immSize = 12;
-            immStart = 0;
+            // Incase of logical shifts
+            if (Instr.Opcode == 0b0010011 && (Instr.Funct3 == 0b001 || Instr.Funct3 == 0b101))
+            {
+                immSize = 5;
+                immStart = 0;
+                mustBePositive = true;
+            }
+            else
+            {
+                immSize = 12;
+                immStart = 0;
+            }
         }
-        else if (Instr.InstructionFormat == EInstructionFormat.U
-            || Instr.InstructionFormat == EInstructionFormat.J)
+        else if (Instr.InstructionFormat == EInstructionFormat.U)
         {
             immSize = 20;
             immStart = 12;
+        }
+        else if (Instr.InstructionFormat == EInstructionFormat.B)
+        {
+            immSize = 13;
+            immStart = 0;
+            lsbMustBeZero = true;
+        }
+        else if (Instr.InstructionFormat == EInstructionFormat.J)
+        {
+            immSize = 21;
+            immStart = 0;
+            lsbMustBeZero = true;
         }
         else
         {
@@ -185,16 +195,6 @@ public struct RiscVCommand
             {
                 throw new NoLabelForConstantException();
             }
-            
-            if (!RiscVBitTools.IsBitsWithinBounds(imm, immSize))
-            {
-                throw new WrongImmidiateSizeException();
-            }
-            else ; // TODO add check for upper immidiate
-            
-            Debug.Print("imm became " + imm);
-            
-            Args.imm = imm;
         }
         else
         {
@@ -236,14 +236,24 @@ public struct RiscVCommand
                     throw new CouldNotParseToIntException();
                 }
             }
-            
-            if (!RiscVBitTools.IsBitsWithinBounds(imm, immSize))
-            {
-                throw new WrongImmidiateSizeException();
-            }
-            
-            Args.imm = imm;
         }
+        
+        if (!RiscVBitTools.IsBitsWithinBounds(imm, immSize))
+        {
+            throw new WrongImmidiateSizeException();
+        }
+        
+        if (mustBePositive && imm < 0)
+        {
+            throw new WrongImmidiateFormatException();
+        }
+        
+        if (lsbMustBeZero && (imm & 1) != 0)
+        {
+            throw new WrongImmidiateFormatException();
+        }
+        
+        Args.imm = imm << immStart;
     }
     
     private void ParseMemory(string memoryAdress, Dictionary<string, int> consts)
@@ -254,8 +264,8 @@ public struct RiscVCommand
         
         if (memorySplit.Success)
         {
-            Args.rs1 = ParseRegisterInt(memoryAdress.Substring(memorySplit.Index + 1, memorySplit.Index + memorySplit.Length - 2));
-            ParseImmidiate(memoryAdress.Substring(0, memorySplit.Index-1), consts);
+            Args.rs1 = ParseRegisterInt(memoryAdress.Substring(memorySplit.Index + 1, memorySplit.Index + memorySplit.Length - 3).Trim());
+            ParseImmidiate(memoryAdress.Substring(0, memorySplit.Index), consts);
         }
         else
         {
@@ -265,13 +275,27 @@ public struct RiscVCommand
     
     private void ParseLabel(string labelName, Dictionary<string, int> labels)
     {
+        int bitlength = -1;
+        if (Instr.InstructionFormat == EInstructionFormat.B)
+        {
+            bitlength = 13;
+        }
+        else if (Instr.InstructionFormat == EInstructionFormat.J)
+        {
+            bitlength = 21;
+        }
+        
         int offset, location;
         if (!labels.TryGetValue(labelName, out location))
         {
             throw new WrongLabelException();
         }
         
-        offset = location - InstructionNumber;
+        offset = (location - InstructionNumber) * 4;
+        
+        if (RiscVBitTools.IsBitsWithinBounds(offset, bitlength))
+        
+        Args.imm = offset;
     }
     
     private void ParseRounding(string roundingMode)

@@ -11,18 +11,22 @@ string tester =
 hello2: .byte 127
 
     hi:
-<<<<<<< HEAD
-      addi   x1, a5, 100            
-=======
-      addi   x1,x0, 0100            
->>>>>>> de587daea8fe575a2a910ce4f1c9003e532ed1d5
+      addi        x1,a5,    100            
 ";
     
     [TestMethod]
     public void TestMethod1()
     {
-        Interpreter testInt = new(PrintTest);
+        Interpreter testInt = new(PrintTest, null, null);
         testInt.Start(tester.Split("\n"));
+    }
+    [TestMethod]
+    public void TestMethod2()
+    {
+        int a = -123128832;
+        
+        Debug.Print("" + (a >>> 2).ToString("b32"));
+        Debug.Print("" + (a >> 2).ToString("b32"));
     }
     
     public void PrintTest(string msg)

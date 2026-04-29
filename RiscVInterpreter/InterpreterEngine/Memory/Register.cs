@@ -7,6 +7,141 @@ namespace RiscVInterpreterEngine;
 
 public class Register
 {
+    static public List<string> RegisterNamesKey { get; private set; } =
+    [
+        "x0", 
+        "x1",
+        "x2",
+        "x3",
+        "x4",
+        "x5",
+        "x6",
+        "x7",
+        "x8",
+        "x9",
+        "x10",
+        "x11",
+        "x12",
+        "x13",
+        "x14",
+        "x15",
+        "x16",
+        "x17",
+        "x18",
+        "x19",
+        "x20",
+        "x21",
+        "x22",
+        "x23",
+        "x24",
+        "x25",
+        "x26",
+        "x27",
+        "x28",
+        "x29",
+        "x30",
+        "x31",
+        "f0",
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7",
+        "f8",
+        "f9",
+        "f10",
+        "f11",
+        "f12",
+        "f13",
+        "f14",
+        "f15",
+        "f16",
+        "f17",
+        "f18",
+        "f19",
+        "f20",
+        "f21",
+        "f22",
+        "f23",
+        "f24",
+        "f25",
+        "f26",
+        "f27",
+        "f28",
+        "f29",
+        "f30",
+        "f31",
+    ];
+    static public List<string> RegisterNamesFull { get; private set; } =
+    [
+        "x0,  zero",
+        "x1,  ra",
+        "x2,  sp",
+        "x3,  gp",
+        "x4,  tp",
+        "x5,  t0",
+        "x6,  t1",
+        "x7,  t2",
+        "x8,  s0",
+        "x9,  s1",
+        "x10, a0",
+        "x11, a1",
+        "x12, a2",
+        "x13, a3",
+        "x14, a4",
+        "x15, a5",
+        "x16, a6",
+        "x17, a7",
+        "x18, s2",
+        "x19, s3",
+        "x20, s4",
+        "x21, s5",
+        "x22, s6",
+        "x23, s7",
+        "x24, s8",
+        "x25, s9",
+        "x26, s10",
+        "x27, s11",
+        "x28, t3",
+        "x29, t4",
+        "x30, t5",
+        "x31, t6",
+        "f0,  ft0",
+        "f1,  ft1",
+        "f2,  ft2",
+        "f3,  ft3",
+        "f4,  ft4",
+        "f5,  ft5",
+        "f6,  ft6",
+        "f7,  ft7",
+        "f8,  fs0",
+        "f9,  fs1",
+        "f10, fa0",
+        "f11, fa1",
+        "f12, fa2",
+        "f13, fa3",
+        "f14, fa4",
+        "f15, fa5",
+        "f16, fa6",
+        "f17, fa7",
+        "f18, fs2",
+        "f19, fs3",
+        "f20, fs4",
+        "f21, fs5",
+        "f22, fs6",
+        "f23, fs7",
+        "f24, fs8",
+        "f25, fs9",
+        "f26, fs10",
+        "f27, fs11",
+        "f28, ft8",
+        "f29, ft9",
+        "f30, ft10",
+        "f31, ft11",
+    ];
+    
     static public Dictionary<string, int> IntegerRegisterNames { get; private set; } = new()
     {
         { "x0",   0  }, { "zero", 0  },
@@ -80,10 +215,15 @@ public class Register
     
     private byte[] _registerValue;
     private bool _canWrite;
+    private string _visualID;
     
-    public Register(int size, bool canWrite = true)
+    private Action<string, int> _registerUpdated;
+    
+    public Register(int size, string visualID, Action<string, int> registerUpdated, bool canWrite = true)
     {
         _registerValue = new byte[size];
+        _visualID = visualID;
+        _registerUpdated = registerUpdated;
         _canWrite = canWrite;
     }
     
@@ -97,6 +237,8 @@ public class Register
         if (!_canWrite) return;
         
         _registerValue = BitConverter.GetBytes(value);
+        
+        _registerUpdated.Invoke(_visualID, BitConverter.ToInt32(_registerValue));
     }
     
     public uint GetAsUInt32()
@@ -109,6 +251,8 @@ public class Register
         if (!_canWrite) return;
         
         _registerValue = BitConverter.GetBytes(value);
+        
+        _registerUpdated.Invoke(_visualID, BitConverter.ToInt32(_registerValue));
     }
     
     public short GetAsInt16()
@@ -121,6 +265,8 @@ public class Register
         if (!_canWrite) return;
         
         _registerValue = SignExtend(BitConverter.GetBytes(value), false);
+        
+        _registerUpdated.Invoke(_visualID, BitConverter.ToInt32(_registerValue));
     }
     
     public ushort GetAsUInt16()
@@ -131,6 +277,8 @@ public class Register
     public void SetFromUInt16(ushort value)
     {
         _registerValue = SignExtend(BitConverter.GetBytes(value), true);
+        
+        _registerUpdated.Invoke(_visualID, BitConverter.ToInt32(_registerValue));
     }
     
     public sbyte GetAsInt8()
@@ -143,6 +291,8 @@ public class Register
         if (!_canWrite) return;
         
         _registerValue = SignExtend([value], false);
+        
+        _registerUpdated.Invoke(_visualID, BitConverter.ToInt32(_registerValue));
     }
     
     public byte GetAsUInt8()
@@ -155,6 +305,8 @@ public class Register
         if (!_canWrite) return;
         
         _registerValue = SignExtend([value], true);
+        
+        _registerUpdated.Invoke(_visualID, BitConverter.ToInt32(_registerValue));
     }
     
     private byte[] SignExtend(byte[] bytes, bool isUnsigned)

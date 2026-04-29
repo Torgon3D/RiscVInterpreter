@@ -20,5 +20,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
     public InstructionsetImplementations(MemoryController memory) : base(memory)
     {
         Int32Constructor();
+        Mul32Constructor();
+        Float32Constructor();
     }
 }

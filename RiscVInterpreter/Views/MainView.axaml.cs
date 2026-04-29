@@ -18,8 +18,14 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
-        
+
         Stream steam = AssetLoader.Open(new Uri("avares://RiscVInterpreter/Assets/RiscVSyntax.xshd"));
         TextEdit.SyntaxHighlighting = HighlightingLoader.Load(XmlReader.Create(steam), HighlightingManager.Instance);
+
+    }
+
+    private void ConsoleBox_SizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        ConsoleScroll.ScrollToEnd();
     }
 }

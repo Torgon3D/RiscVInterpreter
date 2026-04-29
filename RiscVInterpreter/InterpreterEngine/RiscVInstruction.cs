@@ -11,6 +11,7 @@ public class RiscVInstruction
     public byte Opcode;
     public byte? Funct3;
     public byte? Funct7;
+    public byte? rs2f;
     
     public RiscVInstruction(Action<RiscVArguments> instructionFunction,
                             EInstructionFormat instructionFormat,
@@ -18,7 +19,8 @@ public class RiscVInstruction
                             string instructionInfo,
                             byte opcode,
                             byte? funct3 = null,
-                            byte? funct7 = null)
+                            byte? funct7 = null,
+                            byte? rs2 = null)
     {
         InstructionFunction = instructionFunction;
         InstructionFormat = instructionFormat;
@@ -27,6 +29,7 @@ public class RiscVInstruction
         Opcode = opcode;
         Funct3 = funct3;
         Funct7 = funct7;
+        rs2f = rs2;
     }
     
     public void RunFunction(RiscVArguments args)

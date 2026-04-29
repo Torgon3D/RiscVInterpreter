@@ -5,207 +5,214 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RiscVInterpreterEngine;
 
 namespace RiscVInterpreter.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
+    static int[] Speeds = [
+        512,
+        256,
+        128,
+        64,
+        32,
+        16,
+        8,
+        4,
+        2,
+        1
+    ];
+    
     [ObservableProperty]
-    private TextDocument _editableTextDocument = new("Lol");
+    private TextDocument _editableTextDocument = new("");
+    
+    [ObservableProperty]
+    private int _consoleScrollbarLength;
     
     [ObservableProperty]
     private int _selectedSpeed = 3;
     
-    public ObservableCollection<MemoryUI> RegisterList {get;set;}
+    [ObservableProperty]
+    private string _memoryText = "";
+    [ObservableProperty]
+    private string _ConsoleText = "";
+    
+    private Interpreter _interpreterEngine;
+    [ObservableProperty]
+    private int _tempMemoryLocation = 0;
+    public int MemoryLocation = 0;
+    
+    
+    
+    public ObservableCollection<MemoryUI> RegisterIntList {get;set;}
+    public ObservableCollection<MemoryUI> RegisterFloatList {get;set;}
     public MainViewModel()
     {
-        RegisterList = new();
+        RegisterIntList = new();
+        RegisterFloatList = new();
         FillRegisterList();
         
-        Task.Delay(5000).ContinueWith(t => Dispatcher.UIThread.Invoke(DocTest));
+        
+        byte[] mem = new byte[16 * 3];
+        Array.Fill<byte>(mem, 2);
+        UpdateMemory(mem);
+        
+        _interpreterEngine = new(PrintToConsole, UpdateRegister, UpdateMemory);
     }
-    
+
     public void FillRegisterList()
     {
-        RegisterList =
-        [
-            // Ints
-            new("x0,  zero", 0),
-            new("x1,  ra",   0),
-            new("x2,  sp",   0),
-            new("x3,  gp",   0),
-            new("x4,  tp",   0),
-            new("x5,  t0",   0),
-            new("x6,  t1",   0),
-            new("x7,  t2",   0),
-            new("x8,  s0",   0),
-            new("x9,  s1",   0),
-            new("x10, a0",   0),
-            new("x11, a1",   0),
-            new("x12, a2",   0),
-            new("x13, a3",   0),
-            new("x14, a4",   0),
-            new("x15, a5",   0),
-            new("x16, a6",   0),
-            new("x17, a7",   0),
-            new("x18, s2",   0),
-            new("x19, s3",   0),
-            new("x20, s4",   0),
-            new("x21, s5",   0),
-            new("x22, s6",   0),
-            new("x23, s7",   0),
-            new("x24, s8",   0),
-            new("x25, s9",   0),
-            new("x26, s10",  0),
-            new("x27, s11",  0),
-            new("x28, t3",   0),
-            new("x29, t4",   0),
-            new("x30, t5",   0),
-            new("x31, t6",   0),
-            // Floats
-            new("f0,  ft0",  0),
-            new("f1,  ft1",  0),
-            new("f2,  ft2",  0),
-            new("f3,  ft3",  0),
-            new("f4,  ft4",  0),
-            new("f5,  ft5",  0),
-            new("f6,  ft6",  0),
-            new("f7,  ft7",  0),
-            new("f8,  fs0",  0),
-            new("f9,  fs1",  0),
-            new("f10, fa0",  0),
-            new("f11, fa1",  0),
-            new("f12, fa2",  0),
-            new("f13, fa3",  0),
-            new("f14, fa4",  0),
-            new("f15, fa5",  0),
-            new("f16, fa6",  0),
-            new("f17, fa7",  0),
-            new("f18, fs2",  0),
-            new("f19, fs3",  0),
-            new("f20, fs4",  0),
-            new("f21, fs5",  0),
-            new("f22, fs6",  0),
-            new("f23, fs7",  0),
-            new("f24, fs8",  0),
-            new("f25, fs9",  0),
-            new("f26, fs10", 0),
-            new("f27, fs11", 0),
-            new("f28, ft8",  0),
-            new("f29, ft9",  0),
-            new("f30, ft10", 0),
-            new("f31, ft11", 0),
-        ];
+        for (int i = 0; i < 32; i++)
+        {
+            RegisterIntList.Add(new(Register.RegisterNamesKey[i], Register.RegisterNamesFull[i], 0, false));
+        }
+        for (int i = 32; i < 64; i++)
+        {
+            RegisterFloatList.Add(new(Register.RegisterNamesKey[i], Register.RegisterNamesFull[i], 0, true));
+        }
+    }
+    
+    public void UpdateRegister(string name, int value)
+    {
+        int location;
+        if (name[0] == 'x' && Register.IntegerRegisterNames.TryGetValue(name, out location))
+        {
+            RegisterIntList[location].valueInt = value;
+        }
+        else if (name[0] == 'f' && Register.FloatRegisterNames.TryGetValue(name, out location))
+        {
+            RegisterFloatList[location].valueInt = value;
+        }
+    }
+    
+    private void UpdateMemory(byte[] values)
+    {
+        const int memLength = 16*3;
+        StringBuilder stringout = new("Memory with hexadecimal values\nAdress     |    +0    |    +4    |    +8    |\n");
+        int line = MemoryLocation;
+        stringout = stringout.Append($"0x{line:X8} | ");
+        for (int i = MemoryLocation; i < MemoryLocation + memLength; i+=4)
+        {
+            if (i % 12 == 0 &&  i != MemoryLocation && values.Length-1 != i)
+            {
+                line += 12;
+                stringout = stringout.Append($"\n0x{line:X8} | ");
+            }
+            
+            byte[] chosenBytes = [values[i], values[i+1], values[i+2], values[i+3]];
+            int currentHex = BitConverter.ToInt32(chosenBytes);
+            
+            stringout = stringout.Append($"{currentHex:X8} | ");
+        }
+        
+        MemoryText = stringout.ToString();
+    }
+    
+    public void UpdateMemoryPressed(object? sender)
+    {
+        MemoryLocation = TempMemoryLocation;
+        
+        UpdateMemory(_interpreterEngine.RetriveMemory());
     }
     
     public void PlayPressed(object? sender)
     {
-        Console.WriteLine($"{SelectedSpeed}");
+        if (_interpreterEngine.InterpreterState == EInterpreterState.STOPPED)
+        {
+            _interpreterEngine.Hertz = Speeds[SelectedSpeed];
+            _interpreterEngine.Start(EditableTextDocument.Text.Split('\n'));
+        }
+        else if (_interpreterEngine.InterpreterState == EInterpreterState.PAUSED)
+        {
+            _interpreterEngine.Resume();
+        }
     }
     
     public void PausePressed(object? sender)
     {
-        
+        if (_interpreterEngine.InterpreterState == EInterpreterState.RUNNING)
+            _interpreterEngine.PausePressed = true;
     }
     
     public void StopPressed(object? sender)
     {
-        string[] lines = EditableTextDocument.Text.Split('\n');
-        
-        foreach (var line in lines)
+        if (_interpreterEngine.InterpreterState == EInterpreterState.RUNNING)
         {
-            string[] lineparams = line.Split([','], /* StringSplitOptions.RemoveEmptyEntries | */ StringSplitOptions.TrimEntries);
-            
-            foreach (var parameters in lineparams)
-            {
-                Console.Write($"[{parameters}]");
-            }
-            
-            Console.WriteLine();
+            _interpreterEngine.StopPressed = true;
+        }
+        else if (_interpreterEngine.InterpreterState != EInterpreterState.STOPPED)
+        {
+            _interpreterEngine.End();
         }
     }
     
-    // From engine
-    public void RecieveRegisterUpdate(int loc, int value)
+    public void PrintToConsole(string message)
     {
-        RegisterList[loc].visibleValue = value;
-    }
-    
-    public void RecieveMemoryUpdate(int loc, byte[] values)
-    {
+        ConsoleText = ConsoleText + "\n" + message;
         
-    }
-    
-    public void RecieveConsoleMessage(string message)
-    {
-        
-    }
-    
-    // To engine
-    public void RunConsoleCommand(string message)
-    {
-        
-    }
-    
-    public void SendRegisterUpdate(int loc, int value)
-    {
-        
-    }
-    
-    public void SendMemoryUpdate(int loc, byte[] values)
-    {
-        
-    }
-    
-    async void DocTest()
-    {
-        Debug.Print(EditableTextDocument.Text);
-        string[] lines = EditableTextDocument.Text.Split("\n");
-        foreach (var line in lines)
-        {
-            Debug.Print(line);
-        }
+        ConsoleScrollbarLength = 100;
     }
 }
 
 public partial class MemoryUI : INotifyPropertyChanged
 {
-    public string id;
-    public string name { get; set; }
-    public int? visibleValue { get; set {
-            field = (value != null) ? value : 0;
+    public string Id;
+    public string Name { get; set; }
+    public string? VisibleValues { get; set {
+            field = (value != null) ? value : "";
             
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("visibleValue"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(VisibleValues)));
+        }
+    }
+    
+    public bool IsFloat = false;
+    public int? valueInt { get; set {
+            field = (value != null) ? value : 0;
+            valueFloat = BitConverter.Int32BitsToSingle((value != null) ? (int)value : 0);
             ValueUpdated();
         }
     }
+    
+    public float? valueFloat;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     void ValueUpdated()
     {
-        Debug.Print($"{name} has {visibleValue}");
-        
+        if (IsFloat)
+        {
+            VisibleValues = $"Hex:{valueInt:X8} Dec:{valueFloat} \nBin:{valueInt:b32}";
+        }
+        else
+        {
+            VisibleValues = $"Hex:{valueInt:X8} Dec:{valueInt} \nBin:{valueInt:b32}";
+        }
     }
     
     public delegate void UpdateInternalValue(int newValue);
     void InternalValueUpdated(int newValue)
     {
-        visibleValue = newValue;
+        valueInt = newValue;
     }
     
-    public MemoryUI(string key, int value)
+    public MemoryUI(string key, string name, int value, bool isFloat)
     {
-        id = key;
-        this.name = key;
-        this.visibleValue = value;
+        Id = key;
+        this.Name = name;
+        this.valueInt = value;
+        IsFloat = isFloat;
+        
+        ValueUpdated();
     }
 }
