@@ -16,17 +16,116 @@
 
         <!-- Instructions -->
         <Keywords foreground="PeachPuff">
-            <Word>lw</Word>
-            <Word>sw</Word>
+        <!-- Int32 -->
+            <!-- R type -->
             <Word>add</Word>
-            <Word>addi</Word>
             <Word>sub</Word>
-            <Word>j</Word>
-            <Word>ret</Word>
+            <Word>sll</Word>
+            <Word>slt</Word>
+            <Word>sltu</Word>
+            <Word>xor</Word>
+            <Word>srl</Word>
+            <Word>sra</Word>
+            <Word>or</Word>
+            <Word>and</Word>
+            <!-- I type -->
+            <Word>lb</Word>
+            <Word>lh</Word>
+            <Word>lw</Word>
+            <Word>lbu</Word>
+            <Word>lhu</Word>
+            <Word>addi</Word>
+            <Word>slli</Word>
+            <Word>slti</Word>
+            <Word>sltiu</Word>
+            <Word>xori</Word>
+            <Word>srli</Word>
+            <Word>srai</Word>
+            <Word>ori</Word>
+            <Word>andi</Word>
+            <!-- S type -->
+            <Word>sb</Word>
+            <Word>sh</Word>
+            <Word>sw</Word>
+            <!-- B type -->
             <Word>beq</Word>
-            <Word>bneq</Word>
+            <Word>bne</Word>
+            <Word>blt</Word>
+            <Word>bge</Word>
+            <Word>bltu</Word>
+            <Word>bgeu</Word>
+            <!-- U type -->
+            <Word>auipc</Word>
+            <Word>lui</Word>
+            <!-- J type -->
             <Word>jal</Word>
             <Word>jalr</Word>
+        <!-- Mul32 -->
+            <!-- R type -->
+            <Word>mul</Word>
+            <Word>mulh</Word>
+            <Word>mulhsu</Word>
+            <Word>mulhu</Word>
+            <Word>div</Word>
+            <Word>divu</Word>
+            <Word>rem</Word>
+            <Word>remu</Word>
+        <!-- Float32 -->
+            <!-- R type -->
+            <Word>fadd</Word>
+            <Word>fsub</Word>
+            <Word>fmul</Word>
+            <Word>fdiv</Word>
+            <Word>fsqrt</Word>
+            <Word>fsgnj</Word>
+            <Word>fsgnjn</Word>
+            <Word>fsgnjx</Word>
+            <Word>fmin</Word>
+            <Word>fmax</Word>
+            <Word>feq</Word>
+            <Word>flt</Word>
+            <Word>fle</Word>
+            <Word>fclass</Word>
+            <Word>fcvt.w.s</Word>
+            <Word>fcvt.wu.s</Word>
+            <Word>fcvt.s.w</Word>
+            <Word>fcvt.s.wu</Word>
+            <Word>fmv.x.w</Word>
+            <Word>fmv.w.x</Word>
+            <!-- I type -->
+            <Word>flw</Word>
+            <!-- S type -->
+            <Word>fsw</Word>
+            <!-- R4 type -->
+            <Word>fmadd</Word>
+            <Word>fmsub</Word>
+            <Word>fnmadd</Word>
+            <Word>fnmsub</Word>
+        <!-- Float32 with s -->
+            <!-- R type -->
+            <Word>fadd.s</Word>
+            <Word>fsub.s</Word>
+            <Word>fmul.s</Word>
+            <Word>fdiv.s</Word>
+            <Word>fsqrt.s</Word>
+            <Word>fsgnj.s</Word>
+            <Word>fsgnjn.s</Word>
+            <Word>fsgnjx.s</Word>
+            <Word>fmin.s</Word>
+            <Word>fmax.s</Word>
+            <Word>feq.s</Word>
+            <Word>flt.s</Word>
+            <Word>fle.s</Word>
+            <Word>fclass.s</Word>
+            <!-- I type -->
+            <Word>flw.s</Word>
+            <!-- S type -->
+            <Word>fsw.s</Word>
+            <!-- R4 type -->
+            <Word>fmadd.s</Word>
+            <Word>fmsub.s</Word>
+            <Word>fnmadd.s</Word>
+            <Word>fnmsub.s</Word>
         </Keywords>
 
         <!-- Digits -->

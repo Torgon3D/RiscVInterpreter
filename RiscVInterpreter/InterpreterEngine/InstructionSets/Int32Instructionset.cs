@@ -262,7 +262,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("beq", new RiscVInstruction(
             Beq,
             EInstructionFormat.B,
-            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.IMM],
+            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.LABEL],
             "Branch if equal",
             0b1100011,
             0b000
@@ -271,7 +271,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("bne", new RiscVInstruction(
             Bne,
             EInstructionFormat.B,
-            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.IMM],
+            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.LABEL],
             "Branch if not equal",
             0b1100011,
             0b001
@@ -280,7 +280,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("blt", new RiscVInstruction(
             Blt,
             EInstructionFormat.B,
-            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.IMM],
+            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.LABEL],
             "Branch if less than",
             0b1100011,
             0b100
@@ -289,7 +289,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("bge", new RiscVInstruction(
             Bge,
             EInstructionFormat.B,
-            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.IMM],
+            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.LABEL],
             "Branch if greater or equal",
             0b1100011,
             0b101
@@ -298,7 +298,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("bltu", new RiscVInstruction(
             Bltu,
             EInstructionFormat.B,
-            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.IMM],
+            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.LABEL],
             "Branch if less than unsigned",
             0b1100011,
             0b110
@@ -307,7 +307,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("bgeu", new RiscVInstruction(
             Bgeu,
             EInstructionFormat.B,
-            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.IMM],
+            [EArgumentTypes.RS1, EArgumentTypes.RS2, EArgumentTypes.LABEL],
             "Branch if greater or equal unsigned",
             0b1100011,
             0b111
@@ -336,7 +336,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("jal", new RiscVInstruction(
             Jal,
             EInstructionFormat.J,
-            [EArgumentTypes.RD, EArgumentTypes.IMM],
+            [EArgumentTypes.RD, EArgumentTypes.LABEL],
             "Jump and link",
             0b1101111,
             0b000
@@ -346,272 +346,373 @@ public partial class InstructionsetImplementations : InstructionsetBase
     // R type
     private void Add(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 + val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Sub(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 - val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Sll(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 << val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Slt(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 < val2 ? 1 : 0;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Sltu(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        uint val1 = arguments.GetRS1(_memory).GetAsUInt32();
+        uint val2 = arguments.GetRS2(_memory).GetAsUInt32();
+        int newVal = val1 < val2 ? 1 : 0;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Xor(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 ^ val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Srl(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 >> val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Sra(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 >>> val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Or(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 | val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void And(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 & val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     // I type
     private void Lb(RiscVArguments arguments)
     {
-        int location = _memory.IntegerRegisters[arguments.GetRS1()].GetAsInt32() + arguments.GetIMM();
+        int location = arguments.GetRS1(_memory).GetAsInt32() + arguments.GetIMM();
         byte memoryValue = _memory.MemoryStuff.ReadFromAdress(location, 1)[0];
-        _memory.IntegerRegisters[arguments.GetRD()].SetFromInt8(memoryValue);
         
+        arguments.GetRD(_memory).SetFromInt8(memoryValue);
         _memory.PC.IncrementPC();
     }
 
     private void Lh(RiscVArguments arguments)
     {
-        int location = _memory.IntegerRegisters[arguments.GetRS1()].GetAsInt32() + arguments.GetIMM();
+        int location = arguments.GetRS1(_memory).GetAsInt32() + arguments.GetIMM();
         short memoryValue = BitConverter.ToInt16(_memory.MemoryStuff.ReadFromAdress(location, 2));
-        _memory.IntegerRegisters[arguments.GetRD()].SetFromInt16(memoryValue);
         
+        arguments.GetRD(_memory).SetFromInt16(memoryValue);
         _memory.PC.IncrementPC();
     }
 
     private void Lw(RiscVArguments arguments)
     {
-        int location = _memory.IntegerRegisters[arguments.GetRS1()].GetAsInt32() + arguments.GetIMM();
+        int location = arguments.GetRS1(_memory).GetAsInt32() + arguments.GetIMM();
         int memoryValue = BitConverter.ToInt32(_memory.MemoryStuff.ReadFromAdress(location, 4));
-        _memory.IntegerRegisters[arguments.GetRD()].SetFromInt32(memoryValue);
         
+        arguments.GetRD(_memory).SetFromInt32(memoryValue);
         _memory.PC.IncrementPC();
     }
 
     private void Lbu(RiscVArguments arguments)
     {
-        int location = _memory.IntegerRegisters[arguments.GetRS1()].GetAsInt32() + arguments.GetIMM();
+        int location = arguments.GetRS1(_memory).GetAsInt32() + arguments.GetIMM();
         byte memoryValue = _memory.MemoryStuff.ReadFromAdress(location, 1)[0];
-        _memory.IntegerRegisters[arguments.GetRD()].SetFromUInt8(memoryValue);
         
+        arguments.GetRD(_memory).SetFromUInt8(memoryValue);
         _memory.PC.IncrementPC();
     }
 
     private void Lhu(RiscVArguments arguments)
     {
-        int location = _memory.IntegerRegisters[arguments.GetRS1()].GetAsInt32() + arguments.GetIMM();
+        int location = arguments.GetRS1(_memory).GetAsInt32() + arguments.GetIMM();
         ushort memoryValue = BitConverter.ToUInt16(_memory.MemoryStuff.ReadFromAdress(location, 2));
-        _memory.IntegerRegisters[arguments.GetRD()].SetFromUInt16(memoryValue);
         
+        arguments.GetRD(_memory).SetFromUInt16(memoryValue);
         _memory.PC.IncrementPC();
     }
 
     private void Addi(RiscVArguments arguments)
     {
-        _memory.IntegerRegisters[arguments.GetRD()].SetFromInt32(arguments.GetIMM() + _memory.IntegerRegisters[arguments.GetRS1()].GetAsInt32());
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int newVal = val1 + arguments.GetIMM();
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Slli(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int newVal = val1 << arguments.GetIMM();
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Slti(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int newVal = val1 < arguments.GetIMM() ? 1 : 0;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Sltiu(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        uint val1 = arguments.GetRS1(_memory).GetAsUInt32();
+        int newVal = val1 < arguments.GetIMMU() ? 1 : 0;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Xori(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int newVal = val1 ^ arguments.GetIMM();
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Srli(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int newVal = val1 >> arguments.GetIMM();
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Srai(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int newVal = val1 >>> arguments.GetIMM();
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Ori(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int newVal = val1 | arguments.GetIMM();
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Andi(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int newVal = val1 & arguments.GetIMM();
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Jalr(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int newVal = val1 & arguments.GetIMM();
         
-        _memory.PC.IncrementPC();
+        arguments.GetRD(_memory).SetFromInt32(_memory.PC.GetAsInt32() + 4);
+        
+        _memory.PC.SetPCFromUInt32(arguments.GetRS1(_memory).GetAsUInt32() + arguments.GetIMMU());
     }
     
     // S type
     private void Sb(RiscVArguments arguments)
     {
-        int location = _memory.IntegerRegisters[arguments.GetRS1()].GetAsInt32() + arguments.GetIMM();
-        int saveValue = _memory.IntegerRegisters[arguments.GetRS2()].GetAsInt8();
-        _memory.MemoryStuff.SaveToAdress(location, BitConverter.GetBytes(saveValue));
+        int location = arguments.GetRS1(_memory).GetAsInt32() + arguments.GetIMM();
+        int saveValue = arguments.GetRS2(_memory).GetAsInt8();
         
+        _memory.MemoryStuff.SaveToAdress(location, BitConverter.GetBytes(saveValue));
         _memory.PC.IncrementPC();
     }
 
     private void Sh(RiscVArguments arguments)
     {
-        int location = _memory.IntegerRegisters[arguments.GetRS1()].GetAsInt32() + arguments.GetIMM();
-        int saveValue = _memory.IntegerRegisters[arguments.GetRS2()].GetAsInt16();
-        _memory.MemoryStuff.SaveToAdress(location, BitConverter.GetBytes(saveValue));
+        int location = arguments.GetRS1(_memory).GetAsInt32() + arguments.GetIMM();
+        int saveValue = arguments.GetRS2(_memory).GetAsInt16();
         
+        _memory.MemoryStuff.SaveToAdress(location, BitConverter.GetBytes(saveValue));
         _memory.PC.IncrementPC();
     }
 
     private void Sw(RiscVArguments arguments)
     {
-        int location = _memory.IntegerRegisters[arguments.GetRS1()].GetAsInt32() + arguments.GetIMM();
-        int saveValue = _memory.IntegerRegisters[arguments.GetRS2()].GetAsInt32();
-        _memory.MemoryStuff.SaveToAdress(location, BitConverter.GetBytes(saveValue));
+        int location = arguments.GetRS1(_memory).GetAsInt32() + arguments.GetIMM();
+        int saveValue = arguments.GetRS2(_memory).GetAsInt32();
         
+        _memory.MemoryStuff.SaveToAdress(location, BitConverter.GetBytes(saveValue));
         _memory.PC.IncrementPC();
     }
     
     // B type
     private void Beq(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
         
-        _memory.PC.IncrementPC();
+        if (val1 == val2)
+        {
+            _memory.PC.AddPCFromInt32(arguments.GetIMM());
+        }
+        else
+        {
+            _memory.PC.IncrementPC();
+        }
     }
 
     private void Bne(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
         
-        _memory.PC.IncrementPC();
+        if (val1 != val2)
+        {
+            _memory.PC.AddPCFromInt32(arguments.GetIMM());
+        }
+        else
+        {
+            _memory.PC.IncrementPC();
+        }
     }
 
     private void Blt(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
         
-        _memory.PC.IncrementPC();
+        if (val1 < val2)
+        {
+            _memory.PC.AddPCFromInt32(arguments.GetIMM());
+        }
+        else
+        {
+            _memory.PC.IncrementPC();
+        }
     }
 
     private void Bge(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
         
-        _memory.PC.IncrementPC();
+        if (val1 >= val2)
+        {
+            _memory.PC.AddPCFromInt32(arguments.GetIMM());
+        }
+        else
+        {
+            _memory.PC.IncrementPC();
+        }
     }
 
     private void Bltu(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
+        uint val1 = arguments.GetRS1(_memory).GetAsUInt32();
+        uint val2 = arguments.GetRS2(_memory).GetAsUInt32();
         
-        _memory.PC.IncrementPC();
+        if (val1 < val2)
+        {
+            _memory.PC.AddPCFromInt32(arguments.GetIMM());
+        }
+        else
+        {
+            _memory.PC.IncrementPC();
+        }
     }
 
     private void Bgeu(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
+        uint val1 = arguments.GetRS1(_memory).GetAsUInt32();
+        uint val2 = arguments.GetRS2(_memory).GetAsUInt32();
         
-        _memory.PC.IncrementPC();
+        if (val1 >= val2)
+        {
+            _memory.PC.AddPCFromInt32(arguments.GetIMM());
+        }
+        else
+        {
+            _memory.PC.IncrementPC();
+        }
     }
     
     // U type
     private void Auipc(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
+        uint newPC = _memory.PC.GetAsUInt32() + arguments.GetIMMU();
         
-        _memory.PC.IncrementPC();
+        _memory.PC.SetPCFromUInt32(newPC);
     }
 
     private void Lui(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
+        int newValue = arguments.GetIMM();
+        
+        arguments.GetRD(_memory).SetFromInt32(newValue);
         
         _memory.PC.IncrementPC();
     }
@@ -619,8 +720,8 @@ public partial class InstructionsetImplementations : InstructionsetBase
     // J type
     private void Jal(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
+        arguments.GetRD(_memory).SetFromInt32(_memory.PC.GetAsInt32() + 4);
         
-        _memory.PC.IncrementPC();
+        _memory.PC.SetPCFromUInt32(_memory.PC.GetAsUInt32() + arguments.GetIMMU());
     }
 }

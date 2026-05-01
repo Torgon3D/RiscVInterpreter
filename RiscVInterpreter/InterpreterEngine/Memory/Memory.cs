@@ -12,6 +12,8 @@ public class Memory
         _memorySize = memorySize;
         _internalMemory = new byte[_memorySize];
         _memoryUpdated = memoryUpdated;
+        
+        _memoryUpdated(_internalMemory);
     }
     
     public void ResetMemory()

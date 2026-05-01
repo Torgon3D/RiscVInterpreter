@@ -21,7 +21,7 @@ public enum EArgumentTypes : short
 
 public class RiscVArguments
 {
-    public int? rd, rs1, rs2, imm, frs3, rm;
+    public int? rd, rs1, rs2, imm, fs3, rm;
     
     
     public RiscVArguments()
@@ -85,7 +85,7 @@ public class RiscVArguments
                 break;
                 
             case EArgumentTypes.FR3:
-                if (frs3 != null)
+                if (fs3 != null)
                 {
                     continue;
                 }
@@ -120,50 +120,90 @@ public class RiscVArguments
         }
     }
     
-    public int GetRD()
+    public Register GetRD(MemoryController mem)
     {
         if (rd != null)
         {
-            return (int)rd;
+            return mem.IntegerRegisters[(int)rd];
         }
         else
         {
             throw new InvalidArgsException();
         }
     }
-    public int GetRS1()
+    
+    public Register GetRS1(MemoryController mem)
     {
         if (rs1 != null)
         {
-            return (int)rs1;
+            return mem.IntegerRegisters[(int)rs1];
         }
         else
         {
             throw new InvalidArgsException();
         }
     }
-    public int GetRS2()
+    
+    public Register GetRS2(MemoryController mem)
     {
         if (rs2 != null)
         {
-            return (int)rs2;
+            return mem.IntegerRegisters[(int)rs2];
         }
         else
         {
             throw new InvalidArgsException();
         }
     }
-    public int GetFSR3()
+    
+    public Register GetFD(MemoryController mem)
     {
-        if (frs3 != null)
+        if (rd != null)
         {
-            return (int)frs3;
+            return mem.FloatRegisters[(int)rd];
         }
         else
         {
             throw new InvalidArgsException();
         }
     }
+    
+    public Register GetFS1(MemoryController mem)
+    {
+        if (rs1 != null)
+        {
+            return mem.FloatRegisters[(int)rs1];
+        }
+        else
+        {
+            throw new InvalidArgsException();
+        }
+    }
+    
+    public Register GetFS2(MemoryController mem)
+    {
+        if (rs2 != null)
+        {
+            return mem.FloatRegisters[(int)rs2];
+        }
+        else
+        {
+            throw new InvalidArgsException();
+        }
+    }
+    
+    public Register GetFS3(MemoryController mem)
+    {
+        if (fs3 != null)
+        {
+            return mem.FloatRegisters[(int)fs3];
+        }
+        else
+        {
+            throw new InvalidArgsException();
+        }
+    }
+    
     public int GetIMM()
     {
         if (imm != null)
@@ -175,6 +215,19 @@ public class RiscVArguments
             throw new InvalidArgsException();
         }
     }
+    
+    public uint GetIMMU()
+    {
+        if (imm != null)
+        {
+            return unchecked((uint)imm);
+        }
+        else
+        {
+            throw new InvalidArgsException();
+        }
+    }
+    
     public bool TryGetRM(out int roundMode)
     {
         if (rm != null)

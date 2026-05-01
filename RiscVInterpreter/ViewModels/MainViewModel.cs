@@ -38,10 +38,7 @@ public partial class MainViewModel : ViewModelBase
     private TextDocument _editableTextDocument = new("");
     
     [ObservableProperty]
-    private int _consoleScrollbarLength;
-    
-    [ObservableProperty]
-    private int _selectedSpeed = 3;
+    private int _selectedSpeed = 7;
     
     [ObservableProperty]
     private string _memoryText = "";
@@ -62,11 +59,6 @@ public partial class MainViewModel : ViewModelBase
         RegisterIntList = new();
         RegisterFloatList = new();
         FillRegisterList();
-        
-        
-        byte[] mem = new byte[16 * 3];
-        Array.Fill<byte>(mem, 2);
-        UpdateMemory(mem);
         
         _interpreterEngine = new(PrintToConsole, UpdateRegister, UpdateMemory);
     }
@@ -99,6 +91,11 @@ public partial class MainViewModel : ViewModelBase
     private void UpdateMemory(byte[] values)
     {
         const int memLength = 16*3;
+        if (MemoryLocation + memLength >= values.Length)
+        {
+            return;
+        }
+        
         StringBuilder stringout = new("Memory with hexadecimal values\nAdress     |    +0    |    +4    |    +8    |\n");
         int line = MemoryLocation;
         stringout = stringout.Append($"0x{line:X8} | ");
@@ -126,16 +123,16 @@ public partial class MainViewModel : ViewModelBase
         UpdateMemory(_interpreterEngine.RetriveMemory());
     }
     
-    public void PlayPressed(object? sender)
+    public async Task PlayPressed(object? sender)
     {
         if (_interpreterEngine.InterpreterState == EInterpreterState.STOPPED)
         {
             _interpreterEngine.Hertz = Speeds[SelectedSpeed];
-            _interpreterEngine.Start(EditableTextDocument.Text.Split('\n'));
+            await _interpreterEngine.Start(EditableTextDocument.Text.Split('\n'));
         }
         else if (_interpreterEngine.InterpreterState == EInterpreterState.PAUSED)
         {
-            _interpreterEngine.Resume();
+            await _interpreterEngine.ResumeAsync();
         }
     }
     
@@ -160,8 +157,6 @@ public partial class MainViewModel : ViewModelBase
     public void PrintToConsole(string message)
     {
         ConsoleText = ConsoleText + "\n" + message;
-        
-        ConsoleScrollbarLength = 100;
     }
 }
 

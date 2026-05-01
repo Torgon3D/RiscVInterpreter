@@ -92,57 +92,81 @@ public partial class InstructionsetImplementations : InstructionsetBase
     // R type
     private void Mul(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 * val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Mulh(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        long newVal = val1 * val2;
+
+        arguments.GetRD(_memory).SetFromInt32((int)(newVal >> 32));
         _memory.PC.IncrementPC();
     }
 
     private void Mulhsu(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        uint val2 = arguments.GetRS2(_memory).GetAsUInt32();
+        long newVal = val1 * val2;
+
+        arguments.GetRD(_memory).SetFromInt32((int)(newVal >> 32));
         _memory.PC.IncrementPC();
     }
 
     private void Mulhu(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        uint val1 = arguments.GetRS1(_memory).GetAsUInt32();
+        uint val2 = arguments.GetRS2(_memory).GetAsUInt32();
+        ulong newVal = val1 * val2;
+
+        arguments.GetRD(_memory).SetFromUInt32((uint)(newVal >> 32));
         _memory.PC.IncrementPC();
     }
 
     private void Div(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 / val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Divu(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        uint val1 = arguments.GetRS1(_memory).GetAsUInt32();
+        uint val2 = arguments.GetRS2(_memory).GetAsUInt32();
+        uint newVal = val1 / val2;
+
+        arguments.GetRD(_memory).SetFromUInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Rem(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        int val1 = arguments.GetRS1(_memory).GetAsInt32();
+        int val2 = arguments.GetRS2(_memory).GetAsInt32();
+        int newVal = val1 % val2;
+
+        arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
     }
 
     private void Remu(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
+        uint val1 = arguments.GetRS1(_memory).GetAsUInt32();
+        uint val2 = arguments.GetRS2(_memory).GetAsUInt32();
+        uint newVal = val1 % val2;
+
+        arguments.GetRD(_memory).SetFromUInt32(newVal);
         _memory.PC.IncrementPC();
     }
 }

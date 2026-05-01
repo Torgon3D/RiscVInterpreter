@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Media;
 
 namespace RiscVInterpreterEngine;
@@ -57,8 +58,9 @@ public class Interpreter
         _instructions = new(_memController);
     }
     
-    public void Start(string[] lines)
+    public async Task Start(string[] lines)
     {
+        PrintToConsole("\nStarted new run");
         try
         {
             _memController.ResetMemory();
@@ -74,11 +76,16 @@ public class Interpreter
         }
         
         while (InterpreterState == EInterpreterState.RUNNING)
-            ProgramLoop();
+            await Task.Run(ProgramLoop);
     }
     
     public void End()
     {
+        if (InterpreterState == EInterpreterState.PAUSED)
+        {
+            PrintToConsole("Ended prematurely");
+        }
+        
         InterpreterState = EInterpreterState.STOPPED;
         _constValues.Clear();
         _commands.Clear();
@@ -102,21 +109,26 @@ public class Interpreter
         // Execute command
         currentLine.Run();
         
-        PrintToConsole(BuildInstructionInfo(currentLine));
+        PrintInstructionInfoRun(currentLine);
         
         if (StopPressed)
         {
+            PrintToConsole("Ended prematurely");
             PausePressed = false;
             StopPressed = false;
-            PrintToConsole("Ended prematurely");
             End();
             return;
         }
         
         if (PausePressed)
         {
+            // TODO REMOVE
+            PrintAllInstructionInfos();
+            
             InterpreterState = EInterpreterState.PAUSED;
             PausePressed = false;
+            
+            PrintToConsole("Paused");
             return;
         }
         else if (Hertz > 0)
@@ -125,10 +137,12 @@ public class Interpreter
         }
     }
     
-    public void Resume()
+    public async Task ResumeAsync()
     {
+        InterpreterState = EInterpreterState.RUNNING;
+        
         while (InterpreterState == EInterpreterState.RUNNING)
-            ProgramLoop();
+            await Task.Run(ProgramLoop);
     }
     
     public byte[] RetriveMemory()
@@ -246,17 +260,19 @@ public class Interpreter
                 
                 string[] argsStrings = nextLine.Substring(matchCommand.Index + matchCommand.Length).Split(",");
                 
-                int noRounding = 0;
-                if (instr.Arguments[instr.Arguments.Length-1] == EArgumentTypes.ROUNDING)
+                if (argsStrings.Length != instr.Arguments.Length)
                 {
-                    if (argsStrings.Length == instr.Arguments.Length-1)
+                    if (instr.Arguments[instr.Arguments.Length-1] == EArgumentTypes.ROUNDING && argsStrings.Length == instr.Arguments.Length-1)
                     {
-                        noRounding = 1;
                         args.rm = 0;
+                    }
+                    else
+                    {
+                        throw new WrongRegisterException(); // TODO fix
                     }
                 }
                 
-                for (int j = 0; j < argsStrings.Length - noRounding; j++)
+                for (int j = 0; j < argsStrings.Length; j++)
                 {
                     newLine.ParseArgument(argsStrings[j], instr.Arguments[j], _constValues, _jumpPoints);
                 }
@@ -265,6 +281,25 @@ public class Interpreter
                 instructionCounter ++;
             }
         }
+    }
+    
+    public void PrintAllInstructionInfos()
+    {
+        PrintToConsole("Full instruction info");
+        foreach (RiscVCommand c in _commands)
+        {
+            PrintToConsole(BuildInstructionInfo(c));
+        }
+    }
+    
+    public void PrintInstructionInfoRun(RiscVCommand instruction)
+    {
+        StringBuilder output = new();
+        string machineCode = BuildInstructionInfo(instruction);
+        
+        output.Append($"[{instruction.LineNumber}] {machineCode.ToString()} {instruction.CommandInfo} {instruction.Instr.InstructionInfo}");
+        
+        PrintToConsole(output.ToString());
     }
     
     public string BuildInstructionInfo(RiscVCommand instruction)
@@ -277,7 +312,7 @@ public class Interpreter
         case EInstructionFormat.R:
             if (instruction.Args.rd == null
                 || instruction.Args.rs1 == null
-                || instruction.Args.rs2 == null
+                || (instruction.Args.rs2 == null && instruction.Instr.rs2f == null)
                 || instruction.Instr.Funct3 == null
                 || instruction.Instr.Funct7 == null) throw new InvalidArgsException();
             instructionMachineCode |= instruction.Instr.Opcode;
@@ -393,7 +428,7 @@ public class Interpreter
             if (instruction.Args.rd == null
                 || instruction.Args.rs1 == null
                 || instruction.Args.rs2 == null
-                || instruction.Args.frs3 == null
+                || instruction.Args.fs3 == null
                 || instruction.Instr.Funct3 == null
                 || instruction.Instr.Funct7 == null) throw new InvalidArgsException();
             instructionMachineCode |= instruction.Instr.Opcode;
@@ -409,7 +444,7 @@ public class Interpreter
                 instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
             }
             instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct7, 0, 2, 25, false);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.frs3, 0, 5, 27);
+            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.fs3, 0, 5, 27);
             
             break;
         
@@ -418,7 +453,7 @@ public class Interpreter
             break;
         }
         
-        output.Append($"[{instruction.LineNumber}] 0x{instructionMachineCode.ToString("x8")} {instruction.CommandInfo} {instruction.Instr.InstructionInfo}");
+        output.Append($"0x{instructionMachineCode.ToString("x8")}");
         
         return output.ToString();
     }

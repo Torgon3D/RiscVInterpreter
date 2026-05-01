@@ -309,6 +309,20 @@ public class Register
         _registerUpdated.Invoke(_visualID, BitConverter.ToInt32(_registerValue));
     }
     
+    public float GetAsFloat()
+    {
+        return BitConverter.ToSingle(_registerValue);
+    }
+    
+    public void SetFromFloat(float value)
+    {
+        if (!_canWrite) return;
+        
+        _registerValue = BitConverter.GetBytes(value);
+        
+        _registerUpdated.Invoke(_visualID, BitConverter.ToInt32(_registerValue));
+    }
+    
     private byte[] SignExtend(byte[] bytes, bool isUnsigned)
     {
         const byte negative = 0b1111_1111;

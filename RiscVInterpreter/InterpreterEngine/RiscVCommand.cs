@@ -72,7 +72,7 @@ public struct RiscVCommand
             break;
             
         case EArgumentTypes.FR3:
-            Args.frs3 = ParseRegisterFloat(arg);
+            Args.fs3 = ParseRegisterFloat(arg);
             break;
             
         case EArgumentTypes.MEMORY:
@@ -121,6 +121,7 @@ public struct RiscVCommand
         int imm;
         bool mustBePositive = false;
         bool lsbMustBeZero = false;
+        bool Upper = false;
             
         if (Instr.InstructionFormat == EInstructionFormat.I
             || Instr.InstructionFormat == EInstructionFormat.S)
@@ -140,8 +141,9 @@ public struct RiscVCommand
         }
         else if (Instr.InstructionFormat == EInstructionFormat.U)
         {
-            immSize = 20;
-            immStart = 12;
+            immSize = 32;//20;
+            immStart = 0;
+            Upper = true;
         }
         else if (Instr.InstructionFormat == EInstructionFormat.B)
         {
@@ -238,7 +240,7 @@ public struct RiscVCommand
             }
         }
         
-        if (!RiscVBitTools.IsBitsWithinBounds(imm, immSize))
+        if (!RiscVBitTools.IsBitsWithinBounds(imm, immSize) && !Upper)
         {
             throw new WrongImmidiateSizeException();
         }
@@ -251,6 +253,11 @@ public struct RiscVCommand
         if (lsbMustBeZero && (imm & 1) != 0)
         {
             throw new WrongImmidiateFormatException();
+        }
+        
+        if (Upper)
+        {
+            imm = imm & (-1 << 12);
         }
         
         Args.imm = imm << immStart;
