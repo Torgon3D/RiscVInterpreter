@@ -703,9 +703,11 @@ public partial class InstructionsetImplementations : InstructionsetBase
     // U type
     private void Auipc(RiscVArguments arguments)
     {
-        uint newPC = _memory.PC.GetAsUInt32() + arguments.GetIMMU();
+        uint newValue = _memory.PC.GetAsUInt32() + arguments.GetIMMU();
         
-        _memory.PC.SetPCFromUInt32(newPC);
+        arguments.GetRD(_memory).SetFromUInt32(newValue);
+        
+        _memory.PC.IncrementPC();
     }
 
     private void Lui(RiscVArguments arguments)

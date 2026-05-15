@@ -367,7 +367,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
             [EArgumentTypes.FD, EArgumentTypes.MEMORY],
             "Load float",
             0b0000111,
-            0b000
+            0b010
         ));
         
         // S type
@@ -377,7 +377,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
             [EArgumentTypes.FS2, EArgumentTypes.MEMORY],
             "Store float",
             0b0100111,
-            0b000
+            0b010
         ));
         
         // R4 type

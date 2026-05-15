@@ -117,10 +117,6 @@
             <Word>flt.s</Word>
             <Word>fle.s</Word>
             <Word>fclass.s</Word>
-            <!-- I type -->
-            <Word>flw.s</Word>
-            <!-- S type -->
-            <Word>fsw.s</Word>
             <!-- R4 type -->
             <Word>fmadd.s</Word>
             <Word>fmsub.s</Word>

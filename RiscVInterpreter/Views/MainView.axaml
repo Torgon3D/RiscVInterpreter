@@ -53,17 +53,18 @@
                           SelectedIndex="{Binding SelectedSpeed}"
                           MaxDropDownHeight="200"
                           Width="120">
-                <ComboBoxItem>512Hz</ComboBoxItem>
-                <ComboBoxItem>256Hz</ComboBoxItem>
-                <ComboBoxItem>128Hz</ComboBoxItem>
-                <ComboBoxItem>64Hz</ComboBoxItem>
-                <ComboBoxItem>32Hz</ComboBoxItem>
-                <ComboBoxItem>16Hz</ComboBoxItem>
-                <ComboBoxItem>8Hz</ComboBoxItem>
-                <ComboBoxItem>4Hz</ComboBoxItem>
-                <ComboBoxItem>2Hz</ComboBoxItem>
-                <ComboBoxItem>1Hz</ComboBoxItem>
+                    <ComboBoxItem>512Hz</ComboBoxItem>
+                    <ComboBoxItem>256Hz</ComboBoxItem>
+                    <ComboBoxItem>128Hz</ComboBoxItem>
+                    <ComboBoxItem>64Hz</ComboBoxItem>
+                    <ComboBoxItem>32Hz</ComboBoxItem>
+                    <ComboBoxItem>16Hz</ComboBoxItem>
+                    <ComboBoxItem>8Hz</ComboBoxItem>
+                    <ComboBoxItem>4Hz</ComboBoxItem>
+                    <ComboBoxItem>2Hz</ComboBoxItem>
+                    <ComboBoxItem>1Hz</ComboBoxItem>
                 </ComboBox>
+                <Button Content="Print machinecode" Command="{Binding PrintMachineCode}"/>
             </StackPanel>
             </Border>
             <StackPanel Name="Misc" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
@@ -82,6 +83,7 @@
                 
                 <Border Grid.Row="0" Classes="Big">
                 <avaloniaedit:TextEditor Name="TextEdit"
+                                         
                                          Document="{Binding EditableTextDocument, Mode=TwoWay}"
                                          HorizontalAlignment="Stretch"
                                          VerticalAlignment="Stretch"
@@ -112,7 +114,7 @@
                         
                         <Grid ColumnDefinitions="auto, *, auto" Margin="5" Grid.Row="0">
                             <Label Grid.Column="0" >Memory</Label>
-                            <NumericUpDown Value="{Binding TempMemoryLocation}" Grid.Column="1"  ParsingNumberStyle="Integer" FormatString="" Increment="12" Minimum="0" Maximum="2147483647"></NumericUpDown>
+                            <NumericUpDown Value="{Binding TempMemoryLocation, TargetNullValue=0}" Grid.Column="1"  ParsingNumberStyle="Integer" FormatString="" Increment="12" Minimum="0" Maximum="2147483647"></NumericUpDown>
                                 <Button Content="Go" Grid.Column="2" Command="{Binding UpdateMemoryPressed}"></Button>
                         </Grid>
                     

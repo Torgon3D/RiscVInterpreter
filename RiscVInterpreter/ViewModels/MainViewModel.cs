@@ -12,6 +12,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
+using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -46,10 +47,10 @@ public partial class MainViewModel : ViewModelBase
     private string _ConsoleText = "";
     
     private Interpreter _interpreterEngine;
-    [ObservableProperty]
-    private int _tempMemoryLocation = 0;
-    public int MemoryLocation = 0;
     
+    [ObservableProperty]
+    private decimal? _tempMemoryLocation = 0;
+    public int MemoryLocation = 0;
     
     
     public ObservableCollection<MemoryUI> RegisterIntList {get;set;}
@@ -75,6 +76,13 @@ public partial class MainViewModel : ViewModelBase
         }
     }
     
+    public void SetLineUpdates(Action start, Action<int> update, Action end)
+    {
+        _interpreterEngine.StartLineNumber = start;
+        _interpreterEngine.UpdateLineNumber = update;
+        _interpreterEngine.EndLineNumber = end;
+    }
+    
     public void UpdateRegister(string name, int value)
     {
         int location;
@@ -91,6 +99,7 @@ public partial class MainViewModel : ViewModelBase
     private void UpdateMemory(byte[] values)
     {
         const int memLength = 16*3;
+        
         if (MemoryLocation + memLength >= values.Length)
         {
             return;
@@ -118,7 +127,17 @@ public partial class MainViewModel : ViewModelBase
     
     public void UpdateMemoryPressed(object? sender)
     {
-        MemoryLocation = TempMemoryLocation;
+        if (TempMemoryLocation == null)
+        {
+            TempMemoryLocation = 0;
+        }
+        
+        if (TempMemoryLocation % 12 != 0)
+        {
+            TempMemoryLocation -= TempMemoryLocation % 12;
+        }
+        
+        MemoryLocation = Convert.ToInt32(TempMemoryLocation);
         
         UpdateMemory(_interpreterEngine.RetriveMemory());
     }
@@ -128,6 +147,7 @@ public partial class MainViewModel : ViewModelBase
         if (_interpreterEngine.InterpreterState == EInterpreterState.STOPPED)
         {
             _interpreterEngine.Hertz = Speeds[SelectedSpeed];
+            
             await _interpreterEngine.Start(EditableTextDocument.Text.Split('\n'));
         }
         else if (_interpreterEngine.InterpreterState == EInterpreterState.PAUSED)
@@ -152,6 +172,11 @@ public partial class MainViewModel : ViewModelBase
         {
             _interpreterEngine.End();
         }
+    }
+    
+    public void PrintMachineCode(object? sender)
+    {
+        _interpreterEngine.PrintAllMachineCodes(EditableTextDocument.Text.Split('\n'));
     }
     
     public void PrintToConsole(string message)

@@ -58,8 +58,16 @@ public class ProgramCounter
     
     public int GetForCommandArray()
     {
-        //if (_PC % 4 != 0) throw new;
+        if (_PC % 4 != 0) throw new PCSizeException($" PC: {_PC}");
         
         return (int)_PC / 4;
     }
+}
+
+public class PCSizeException : Exception
+{
+    const string msg = $"PC is is not divisible by 4.";
+    
+    public PCSizeException(string extraInfo) : base(msg + extraInfo){}
+    public PCSizeException() : base(msg){}
 }
