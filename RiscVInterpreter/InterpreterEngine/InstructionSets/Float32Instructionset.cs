@@ -598,12 +598,32 @@ public partial class InstructionsetImplementations : InstructionsetBase
 
     private void Fclass(RiscVArguments arguments)
     {
-        throw new NotImplementedException();
-        
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
-        int newVal; // TODO = class of val1 somehow
-
-        arguments.GetRD(_memory).SetFromInt32(newVal);
+        int calssifyMaskVal = 0;
+        if (val1 == 0f)
+        {
+            if (float.IsNegative(val1)) calssifyMaskVal = 1 << 3;
+            else if (float.IsPositive(val1)) calssifyMaskVal = 1 << 4;
+        }
+        else if (float.IsNegative(val1))
+        {
+            if (float.IsNegativeInfinity(val1)) calssifyMaskVal = 1 << 0;
+            else if (float.IsNormal(val1)) calssifyMaskVal = 1 << 1;
+            else if (float.IsSubnormal(val1)) calssifyMaskVal = 1 << 2;
+        }
+        else if (float.IsPositive(val1))
+        {
+            if (float.IsPositiveInfinity(val1)) calssifyMaskVal = 1 << 7;
+            else if (float.IsNormal(val1)) calssifyMaskVal = 1 << 6;
+            else if (float.IsSubnormal(val1)) calssifyMaskVal = 1 << 5;
+        }
+        else if (float.IsNaN(val1))
+        {
+            if ((unchecked((int)val1) & 1) == 1) calssifyMaskVal = 1 << 8;
+            else calssifyMaskVal = 1 << 9;
+        }
+        
+        arguments.GetRD(_memory).SetFromInt32(calssifyMaskVal);
         _memory.PC.IncrementPC();
     }
 
