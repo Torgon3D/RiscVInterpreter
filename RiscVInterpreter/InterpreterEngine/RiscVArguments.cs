@@ -34,20 +34,20 @@ public enum ERoundingModes : byte
 public class RiscVArguments
 {
     public int? rd, rs1, rs2, imm, fs3;
-    public ERoundingModes rm;
+    public ERoundingModes? rm;
     
     static Dictionary<string, ERoundingModes> _roundingModes = new()
     {
-        { "RNE", ERoundingModes.RNE },
-        { "RTZ", ERoundingModes.RTZ },
-        { "RDN", ERoundingModes.RDN },
-        { "RUP", ERoundingModes.RUP },
-        { "RMM", ERoundingModes.RMM },
+        { "rne", ERoundingModes.RNE },
+        { "rtz", ERoundingModes.RTZ },
+        { "rdn", ERoundingModes.RDN },
+        { "rup", ERoundingModes.RUP },
+        { "rmm", ERoundingModes.RMM },
     };
     
     public RiscVArguments()
     {
-        rm = ERoundingModes.RNE;
+        
     }
     
     public void HasArgumentsFilled(EArgumentTypes[] arguments)
@@ -251,7 +251,14 @@ public class RiscVArguments
     
     public ERoundingModes GetRM()
     {
-        return rm;
+        if (rm != null)
+        {
+            return (ERoundingModes)rm;
+        }
+        else
+        {
+            throw new ArgNotSetException($" Argument: rm");
+        }
     }
     
     public int GetJumpAmount()
