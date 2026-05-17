@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.Intrinsics.X86;
 
 namespace RiscVInterpreterEngine;
 
@@ -468,7 +469,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
     {
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
         float val2 = arguments.GetFS2(_memory).GetAsFloat();
-        float newVal = val1 + val2;
+        float newVal = HandleRounding((double)val1 + val2, arguments);
 
         arguments.GetFD(_memory).SetFromFloat(newVal);
         _memory.PC.IncrementPC();
@@ -478,7 +479,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
     {
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
         float val2 = arguments.GetFS2(_memory).GetAsFloat();
-        float newVal = val1 - val2;
+        float newVal = HandleRounding((double)val1 - val2, arguments);
 
         arguments.GetFD(_memory).SetFromFloat(newVal);
         _memory.PC.IncrementPC();
@@ -488,7 +489,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
     {
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
         float val2 = arguments.GetFS2(_memory).GetAsFloat();
-        float newVal = val1 * val2;
+        float newVal = HandleRounding((double)val1 * val2, arguments);
 
         arguments.GetFD(_memory).SetFromFloat(newVal);
         _memory.PC.IncrementPC();
@@ -498,7 +499,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
     {
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
         float val2 = arguments.GetFS2(_memory).GetAsFloat();
-        float newVal = val1 / val2;
+        float newVal = HandleRounding((double)val1 / val2, arguments);
 
         arguments.GetFD(_memory).SetFromFloat(newVal);
         _memory.PC.IncrementPC();
@@ -507,7 +508,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
     private void Fsqrt(RiscVArguments arguments)
     {
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
-        float newVal = MathF.Sqrt(val1);
+        float newVal = HandleRounding(Math.Sqrt((double)val1), arguments);
 
         arguments.GetFD(_memory).SetFromFloat(newVal);
         _memory.PC.IncrementPC();
@@ -630,7 +631,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
     private void FcvtWS(RiscVArguments arguments)
     {
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
-        int newVal = (int)val1;
+        int newVal = (int)HandleRounding((double)val1, arguments, precision: 0);
 
         arguments.GetRD(_memory).SetFromInt32(newVal);
         _memory.PC.IncrementPC();
@@ -639,7 +640,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
     private void FcvtWuS(RiscVArguments arguments)
     {
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
-        uint newVal = (uint)val1;
+        uint newVal = (uint)HandleRounding((double)val1, arguments, precision: 0);
 
         arguments.GetRD(_memory).SetFromUInt32(newVal);
         _memory.PC.IncrementPC();
@@ -705,7 +706,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
         float val2 = arguments.GetFS2(_memory).GetAsFloat();
         float val3 = arguments.GetFS3(_memory).GetAsFloat();
-        float newVal = val1 * val2 + val3;
+        float newVal = HandleRounding((double)val1 * val2 + val3, arguments);
 
         arguments.GetFD(_memory).SetFromFloat(newVal);
         _memory.PC.IncrementPC();
@@ -716,7 +717,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
         float val2 = arguments.GetFS2(_memory).GetAsFloat();
         float val3 = arguments.GetFS3(_memory).GetAsFloat();
-        float newVal = val1 * val2 - val3;
+        float newVal = HandleRounding((double)val1 * val2 - val3, arguments);
 
         arguments.GetFD(_memory).SetFromFloat(newVal);
         _memory.PC.IncrementPC();
@@ -727,7 +728,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
         float val2 = arguments.GetFS2(_memory).GetAsFloat();
         float val3 = arguments.GetFS3(_memory).GetAsFloat();
-        float newVal = -(val1 * val2 + val3);
+        float newVal = HandleRounding(-((double)val1 * val2 + val3), arguments);
 
         arguments.GetFD(_memory).SetFromFloat(newVal);
         _memory.PC.IncrementPC();
@@ -738,9 +739,63 @@ public partial class InstructionsetImplementations : InstructionsetBase
         float val1 = arguments.GetFS1(_memory).GetAsFloat();
         float val2 = arguments.GetFS2(_memory).GetAsFloat();
         float val3 = arguments.GetFS3(_memory).GetAsFloat();
-        float newVal = -(val1 * val2 - val3);
+        float newVal = HandleRounding(-((double)val1 * val2 - val3), arguments);
 
         arguments.GetFD(_memory).SetFromFloat(newVal);
         _memory.PC.IncrementPC();
+    }
+    
+    private float HandleRounding(double input, RiscVArguments arguments, int precision = 7)
+    {
+        double output = input;
+        bool isNotLessThanOne = Math.Abs(output) >= 1f;
+        
+        if (arguments.rm == ERoundingModes.RNE)
+        {
+            return (float)output;
+        }
+        else
+        {
+            int amount = 0;
+            
+            while ((Math.Abs(output) >= 10f && isNotLessThanOne) || (Math.Abs(output) < 1f && !isNotLessThanOne))
+            {
+                output /= isNotLessThanOne ? 10f : 1f/10f;
+                amount++;
+            }
+            
+            MidpointRounding roundingMode;
+            
+            switch (arguments.rm)
+            {
+            case ERoundingModes.RTZ:
+                roundingMode = MidpointRounding.ToZero;
+                break;
+                
+            case ERoundingModes.RDN:
+                roundingMode = MidpointRounding.ToNegativeInfinity;
+                break;
+                
+            case ERoundingModes.RUP:
+                roundingMode = MidpointRounding.ToPositiveInfinity;
+                break;
+                
+            case ERoundingModes.RMM:
+                roundingMode = MidpointRounding.AwayFromZero;
+                break;
+            default:
+                roundingMode = MidpointRounding.ToEven;
+                break;
+            }
+            
+            output = Math.Round(output, precision, roundingMode);
+            
+            for (int i = 0; i < amount; i++)
+            {
+                output *= isNotLessThanOne ? 10f : 1f/10f;
+            }
+            
+            return (float)output;
+        }
     }
 }

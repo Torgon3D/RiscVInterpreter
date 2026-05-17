@@ -22,22 +22,32 @@ public enum EArgumentTypes : short
     ROUNDING
 }
 
+public enum ERoundingModes : byte
+{
+    RNE = 0b000,
+    RTZ = 0b001,
+    RDN = 0b010,
+    RUP = 0b011,
+    RMM = 0b100
+}
+
 public class RiscVArguments
 {
-    public int? rd, rs1, rs2, imm, fs3, rm;
+    public int? rd, rs1, rs2, imm, fs3;
+    public ERoundingModes rm;
     
-    static Dictionary<string, byte> _roundingModes = new()
+    static Dictionary<string, ERoundingModes> _roundingModes = new()
     {
-        { "RNE", 0b000 },
-        { "RTZ", 0b001 },
-        { "RDN", 0b010 },
-        { "RUP", 0b011 },
-        { "RMM", 0b100 },
+        { "RNE", ERoundingModes.RNE },
+        { "RTZ", ERoundingModes.RTZ },
+        { "RDN", ERoundingModes.RDN },
+        { "RUP", ERoundingModes.RUP },
+        { "RMM", ERoundingModes.RMM },
     };
     
     public RiscVArguments()
     {
-        
+        rm = ERoundingModes.RNE;
     }
     
     public void HasArgumentsFilled(EArgumentTypes[] arguments)
@@ -239,18 +249,9 @@ public class RiscVArguments
         }
     }
     
-    public bool TryGetRM(out int roundMode)
+    public ERoundingModes GetRM()
     {
-        if (rm != null)
-        {
-            roundMode = (int)rm;
-            return true;
-        }
-        else
-        {
-            roundMode = 0;
-            return false;
-        }
+        return rm;
     }
     
     public int GetJumpAmount()
@@ -545,7 +546,7 @@ public class RiscVArguments
     
     private void ParseRounding(string roundingMode, RiscVInstruction Instr)
     {
-        byte roundValue;
+        ERoundingModes roundValue;
         if (!_roundingModes.TryGetValue(roundingMode, out roundValue))
         {
             throw new WrongRoundingModeException($" Rounding mode: {roundingMode}");
