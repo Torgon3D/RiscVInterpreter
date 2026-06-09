@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace RiscVInterpreterEngine;
 // Include all the base information and checker functions that are needed
@@ -22,5 +23,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Int32Constructor();
         Mul32Constructor();
         Float32Constructor();
+        
+        Debug.Print(Instructions.Count + "Yay");
     }
 }

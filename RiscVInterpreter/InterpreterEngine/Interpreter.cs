@@ -44,6 +44,12 @@ public class Interpreter
         { ".half", 16 },
         { ".byte", 8  }
     };
+    
+    private const string _matchConstant = @"^\.[a-zA-Z.]+\b";
+    private const string _matchCommand = @"^[^.][a-zA-Z.]+\b";
+    private const string _matchLabel = @"^[^:][a-zA-Z\d_.]+:";
+    private const string _matchComment = @"^[^#]*";
+    
     private Dictionary<string, int> _constValues = new();
     private Dictionary<string, int> _jumpPoints = new();
     private List<RiscVCommand> _commands = new();
@@ -221,24 +227,24 @@ public class Interpreter
             
             string trimmedLine = lines[i].Trim();
             // Removes comments
-            trimmedLine = Regex.Match(trimmedLine, @"^[^#]*").Value;
+            trimmedLine = Regex.Match(trimmedLine, _matchComment).Value;
             if (trimmedLine.IsWhiteSpace()) return;
             
             int stringLoc = 0;
             
-            Match match = Regex.Match(trimmedLine, @"^[^:][a-zA-Z\d_.]+:");
+            Match matchLabel = Regex.Match(trimmedLine, _matchLabel);
             // if its a label try to find out if its an command
-            if (match.Success)
+            if (matchLabel.Success)
             {
                 // its a label
-                labels.Add(match.Value.Replace(":", ""));
-                stringLoc = match.Index + match.Length;
+                labels.Add(matchLabel.Value.Replace(":", ""));
+                stringLoc = matchLabel.Index + matchLabel.Length;
             }
             
             string nextLine = trimmedLine.Substring(stringLoc).Trim();
             
-            Match matchConstant = Regex.Match(nextLine, @"^\.[a-zA-Z.]+\b");
-            Match matchCommand = Regex.Match(nextLine, @"^[^.][a-zA-Z.]+\b");
+            Match matchConstant = Regex.Match(nextLine, _matchConstant);
+            Match matchCommand = Regex.Match(nextLine, _matchCommand);
             
             if (matchConstant.Success)
             {
@@ -289,12 +295,12 @@ public class Interpreter
             
             string trimmedLine = lines[i].Trim();
             // Removes comments
-            trimmedLine = Regex.Match(trimmedLine, @"^[^#]*").Value;
+            trimmedLine = Regex.Match(trimmedLine, _matchComment).Value;
             if (trimmedLine.IsWhiteSpace()) return;
             
             int stringLoc = 0;
             
-            Match matchLabel = Regex.Match(trimmedLine, @"^[^:][a-zA-Z\d_.]+:");
+            Match matchLabel = Regex.Match(trimmedLine, _matchLabel);
             // if its a label try to find out if its an command
             if (matchLabel.Success)
             {
@@ -304,8 +310,8 @@ public class Interpreter
             
             string nextLine = trimmedLine.Substring(stringLoc).Trim();
             
-            Match matchConstant = Regex.Match(nextLine, @"^\.[a-zA-Z.]+\b");
-            Match matchCommand = Regex.Match(nextLine, @"^[^.][a-zA-Z.]+\b");
+            Match matchConstant = Regex.Match(nextLine, _matchConstant);
+            Match matchCommand = Regex.Match(nextLine, _matchCommand);
             
             if (matchConstant.Success)
             {
@@ -356,174 +362,18 @@ public class Interpreter
     {
         foreach (RiscVCommand c in _commands)
         {
-            PrintToConsole(BuildInstructionInfo(c));
+            PrintToConsole(c.BuildInstructionMachineCodeHex());
         }
     }
     
     public void PrintInstructionInfoRun(RiscVCommand instruction)
     {
         StringBuilder output = new();
-        string machineCode = BuildInstructionInfo(instruction);
+        string machineCode = instruction.BuildInstructionMachineCodeHex();
         
         output.Append($"[{instruction.LineNumber}] {machineCode.ToString()} {instruction.CommandInfo} {instruction.Instr.InstructionInfo}");
         
         PrintToConsole(output.ToString());
-    }
-    
-    public string BuildInstructionInfo(RiscVCommand instruction)
-    {
-        StringBuilder output = new();
-        
-        int instructionMachineCode = 0;
-        switch (instruction.Instr.InstructionFormat)
-        {
-        case EInstructionFormat.R:
-            if (instruction.Args.rd == null
-                || instruction.Args.rs1 == null
-                || (instruction.Args.rs2 == null && instruction.Instr.rs2f == null)
-                || instruction.Instr.Funct3 == null
-                || instruction.Instr.Funct7 == null) throw new InvalidArgsForInstructionTypeException($" Instruction type: R");
-            instructionMachineCode |= instruction.Instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 0, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
-            
-            if (instruction.Instr.rs2f != null)
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.rs2f, 0, 5, 20);
-            }
-            else if (instruction.Args.rs2 != null)
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 0, 5, 20);
-            }
-            if (instruction.Args.rm != null)
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
-            }
-            else
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
-            }
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct7, 0, 7, 25);
-            break;
-        
-        case EInstructionFormat.I:
-            if (instruction.Args.rd == null
-                || instruction.Args.rs1 == null
-                || instruction.Args.imm == null
-                || instruction.Instr.Funct3 == null) throw new InvalidArgsForInstructionTypeException($" Instruction type: I");
-            instructionMachineCode |= instruction.Instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 0, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
-            if (instruction.Args.rm != null)
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
-            }
-            else
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
-            }
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 0, 12, 20);
-            
-            break;
-        
-        case EInstructionFormat.S:
-            if (instruction.Args.rs1 == null
-                || instruction.Args.rs2 == null
-                || instruction.Args.imm == null
-                || instruction.Instr.Funct3 == null) throw new InvalidArgsForInstructionTypeException($" Instruction type: S");
-            instructionMachineCode |= instruction.Instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 0, 5, 20);
-            if (instruction.Args.rm != null)
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
-            }
-            else
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
-            }
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 0, 5, 7, false);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 5, 7, 25);
-            
-            break;
-        
-        case EInstructionFormat.B:
-            if (instruction.Args.rs1 == null
-                || instruction.Args.rs2 == null
-                || instruction.Args.imm == null
-                || instruction.Instr.Funct3 == null) throw new InvalidArgsForInstructionTypeException($" Instruction type: B");
-        
-            instructionMachineCode |= instruction.Instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 0, 5, 20);
-            if (instruction.Args.rm != null)
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
-            }
-            else
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
-            }
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 11, 1, 7, false);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 1, 4, 8, false);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 5, 6, 25, false);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 12, 1, 31);
-            
-            break;
-        
-        case EInstructionFormat.U:
-            if (instruction.Args.rd == null ||
-                instruction.Args.imm == null) throw new InvalidArgsForInstructionTypeException($" Instruction type: U");
-            instructionMachineCode |= instruction.Instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 0, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 12, 20, 12);
-            
-            break;
-        
-        case EInstructionFormat.J:
-            if (instruction.Args.rd == null
-                || instruction.Args.imm == null) throw new InvalidArgsForInstructionTypeException($" Instruction type: J");
-            instructionMachineCode |= instruction.Instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 0, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 12, 8, 12, false);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 11, 1, 20, false);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 1, 10, 21, false);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.imm, 20, 1, 31);
-            
-            break;
-        
-        case EInstructionFormat.R4:
-            if (instruction.Args.rd == null
-                || instruction.Args.rs1 == null
-                || instruction.Args.rs2 == null
-                || instruction.Args.fs3 == null
-                || instruction.Instr.Funct3 == null
-                || instruction.Instr.Funct7 == null) throw new InvalidArgsForInstructionTypeException($" Instruction type: R4");
-            instructionMachineCode |= instruction.Instr.Opcode;
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rd, 0, 5, 7);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs1, 0, 5, 15);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rs2, 0, 5, 20);
-            if (instruction.Args.rm != null)
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.rm, 0, 3, 12);
-            }
-            else
-            {
-                instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct3, 0, 3, 12);
-            }
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Instr.Funct7, 0, 2, 25, false);
-            instructionMachineCode |= RiscVBitTools.GetBitsAndSignWithinBounds((int)instruction.Args.fs3, 0, 5, 27);
-            
-            break;
-        
-        default:
-            
-            break;
-        }
-        
-        output.Append($"0x{instructionMachineCode.ToString("x8")}");
-        
-        return output.ToString();
     }
 }
 
@@ -573,12 +423,4 @@ public class IncorrectBitLengthException : Exception
     
     public IncorrectBitLengthException(string extraInfo) : base(msg + extraInfo){}
     public IncorrectBitLengthException() : base(msg){}
-}
-
-public class InvalidArgsForInstructionTypeException : Exception
-{
-    const string msg = "Arg(s) for the instruction type has not been set.";
-    
-    public InvalidArgsForInstructionTypeException(string extraInfo) : base(msg + extraInfo){}
-    public InvalidArgsForInstructionTypeException() : base(msg){}
 }

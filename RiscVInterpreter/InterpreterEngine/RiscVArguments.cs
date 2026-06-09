@@ -513,11 +513,11 @@ public class RiscVArguments
     {
         // Will have to split imm and register
         
-        Match memorySplit = Regex.Match(memoryAdress, @"\([A-Za-z0-9]+\)$");
+        Match memorySplit = Regex.Match(memoryAdress, @"\([A-Za-z0-9\s]+\)$");
         
         if (memorySplit.Success)
         {
-            rs1 = ParseRegisterInt(memoryAdress.Substring(memorySplit.Index + 1, memorySplit.Index + memorySplit.Length - 3).Trim(), instr);
+            rs1 = ParseRegisterInt(memorySplit.Value.Substring(1, memorySplit.Length - 2).Trim(), instr);
             ParseImmidiate(memoryAdress.Substring(0, memorySplit.Index), consts, instr);
         }
         else

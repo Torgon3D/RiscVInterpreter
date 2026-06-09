@@ -113,7 +113,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("feq", new RiscVInstruction(
             Feq,
             EInstructionFormat.R,
-            [EArgumentTypes.FD, EArgumentTypes.FS1, EArgumentTypes.FS2],
+            [EArgumentTypes.RD, EArgumentTypes.FS1, EArgumentTypes.FS2],
             "Float equal",
             0b1010011,
             0b010,
@@ -123,7 +123,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("flt", new RiscVInstruction(
             Flt,
             EInstructionFormat.R,
-            [EArgumentTypes.FD, EArgumentTypes.FS1, EArgumentTypes.FS2],
+            [EArgumentTypes.RD, EArgumentTypes.FS1, EArgumentTypes.FS2],
             "Float less than",
             0b1010011,
             0b001,
@@ -133,7 +133,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("fle", new RiscVInstruction(
             Fle,
             EInstructionFormat.R,
-            [EArgumentTypes.FD, EArgumentTypes.FS1, EArgumentTypes.FS2],
+            [EArgumentTypes.RD, EArgumentTypes.FS1, EArgumentTypes.FS2],
             "Float less or equal",
             0b1010011,
             0b000,
@@ -143,7 +143,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("fclass", new RiscVInstruction(
             Fclass,
             EInstructionFormat.R,
-            [EArgumentTypes.FD, EArgumentTypes.FS1],
+            [EArgumentTypes.RD, EArgumentTypes.FS1],
             "Float classify",
             0b1010011,
             0b001,
@@ -256,7 +256,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("feq.s", new RiscVInstruction(
             Feq,
             EInstructionFormat.R,
-            [EArgumentTypes.FD, EArgumentTypes.FS1, EArgumentTypes.FS2],
+            [EArgumentTypes.RD, EArgumentTypes.FS1, EArgumentTypes.FS2],
             "Float equal",
             0b1010011,
             0b010,
@@ -266,7 +266,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("flt.s", new RiscVInstruction(
             Flt,
             EInstructionFormat.R,
-            [EArgumentTypes.FD, EArgumentTypes.FS1, EArgumentTypes.FS2],
+            [EArgumentTypes.RD, EArgumentTypes.FS1, EArgumentTypes.FS2],
             "Float less than",
             0b1010011,
             0b001,
@@ -276,7 +276,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("fle.s", new RiscVInstruction(
             Fle,
             EInstructionFormat.R,
-            [EArgumentTypes.FD, EArgumentTypes.FS1, EArgumentTypes.FS2],
+            [EArgumentTypes.RD, EArgumentTypes.FS1, EArgumentTypes.FS2],
             "Float less or equal",
             0b1010011,
             0b000,
@@ -286,7 +286,7 @@ public partial class InstructionsetImplementations : InstructionsetBase
         Instructions.Add("fclass.s", new RiscVInstruction(
             Fclass,
             EInstructionFormat.R,
-            [EArgumentTypes.FD, EArgumentTypes.FS1],
+            [EArgumentTypes.RD, EArgumentTypes.FS1],
             "Float classify",
             0b1010011,
             0b001,
